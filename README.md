@@ -92,3 +92,6 @@ Instala el stellar-sdk, que es necesario para poder interactuar con la blockchai
 
 Para instalar las dependencias del freighter-api, que nos permite interactuar con las billeteras Freighter.
 ```npm install stellar-sdk @stellar/freighter-api```
+
+Para instalar herramientas como env
+```npm i @nestjs/config```
