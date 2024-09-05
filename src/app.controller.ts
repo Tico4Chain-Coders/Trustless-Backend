@@ -1,6 +1,5 @@
 import { Body, Controller, Get, HttpException, HttpStatus, Post, Query } from '@nestjs/common';
 import { AppService } from './app.service';
-import * as StellarSDK from '@stellar/stellar-sdk';
 
 
 @Controller()
@@ -9,6 +8,8 @@ export class AppController {
     private readonly appService: AppService,
   ) {}
 
+
+  
   @Get()
   getHello(): string {
     return this.appService.getHello();

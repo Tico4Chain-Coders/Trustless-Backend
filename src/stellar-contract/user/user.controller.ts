@@ -9,7 +9,7 @@ export class UserController {
     ){}
 
     @Post('register')
-    async createProject(
+    async register(
         @Body('userAddress') userAddress: string,
         @Body('name') name: string,
         @Body('email') email: string,

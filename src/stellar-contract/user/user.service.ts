@@ -76,7 +76,7 @@ export class UserService {
 
 
         } catch( error ) {
-            console.error('Error calling create_project:', error);
+            console.error('Error calling register function:', error);
             throw error;
         }
 
