@@ -23,4 +23,27 @@ export class ProjectController {
         }
     }
 
+    @Post('fund-objective')
+    async fundObjective(
+      @Body('contractId') contractId: string,
+      @Body('objectiveId') objectiveId: string,
+      @Body('user') user: string,
+      @Body('usdcContract') usdcContract: string,
+      @Body('freelanceContract') freelanceContract: string,
+      @Body('secretKey') secretKey: string,
+    ): Promise<any> {
+        try {
+          const result = await this.projectService.fundObjective(
+            contractId,
+            objectiveId,
+            user,
+            usdcContract,
+            freelanceContract,
+            secretKey
+          );
+          return result;
+        } catch (error) {
+          throw new HttpException('Failed to fund objective', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
