@@ -1,4 +1,4 @@
-import { Body, Controller, HttpException, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Query } from '@nestjs/common';
 import { ProjectService } from './project.service';
 
 @Controller('project')
@@ -46,4 +46,17 @@ export class ProjectController {
           throw new HttpException('Failed to fund objective', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-}
+
+  @Get('by-client')
+  async getProjectsByClient(
+    @Query('spenderAddress') spenderAddress: string,
+    @Query('secretKey') secretKey: string,
+  ) {
+    try {
+      const projects = await this.projectService.getProjectsBySpender(spenderAddress, secretKey);
+      return projects;
+    } catch (error) {
+      throw new HttpException('Failed to fetch projects by client', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  }
