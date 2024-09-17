@@ -8,7 +8,7 @@ export class ProjectController {
         private readonly projectService: ProjectService
     ){}
 
-    @Post('create')
+    @Post('initialize-escrow')
     async createProject(
         @Body('freelancer') freelancer: string,
         @Body('prices') prices: string[],
@@ -16,7 +16,7 @@ export class ProjectController {
         @Body('secretKey') secretKey: string
     ): Promise<number> {
         try {
-            const result = await this.projectService.createProject(freelancer, prices, user, secretKey);
+            const result = await this.projectService.initializeEscrow(freelancer, prices, user, secretKey);
             return result;
         } catch (error) {
             throw new HttpException('Failed to interact with contract', HttpStatus.INTERNAL_SERVER_ERROR);

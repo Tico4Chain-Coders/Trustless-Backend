@@ -19,7 +19,7 @@ export class ProjectService {
     this.contract = new StellarSDK.Contract(this.trustlessContractId);
   }
 
-  async createProject(
+  async initializeEscrow(
     freelancer: string,
     prices: string[],
     user: string,
@@ -45,7 +45,7 @@ export class ProjectService {
         .setTimeout(30)
         .addOperation(
           this.contract.call(
-            'create_project',
+            'initialize_escrow',
             StellarSDK.Address.fromString(freelancer).toScVal(),
             scValPrices,
             StellarSDK.Address.fromString(user).toScVal(),
