@@ -25,20 +25,20 @@ export class ProjectController {
 
     @Post('fund-objective')
     async fundObjective(
-      @Body('contractId') contractId: string,
-      @Body('objectiveId') objectiveId: string,
-      @Body('user') user: string,
+      @Body('escrowId') escrowId: string,
+      @Body('partyId') partyId: string,
+      @Body('spender') spender: string,
       @Body('usdcContract') usdcContract: string,
-      @Body('freelanceContract') freelanceContract: string,
+      @Body('from') from: string,
       @Body('secretKey') secretKey: string,
     ): Promise<any> {
         try {
           const result = await this.projectService.fundObjective(
-            contractId,
-            objectiveId,
-            user,
+            escrowId,
+            partyId,
+            spender,
             usdcContract,
-            freelanceContract,
+            from,
             secretKey
           );
           return result;

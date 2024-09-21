@@ -8,14 +8,14 @@ export class ProjectService {
   private contract: StellarSDK.Contract;
   private sourceKeypair: StellarSDK.Keypair;
   private trustlessContractId: string;
-  private tokenContractId: string;
+  // private tokenContractId: string;
 
   constructor() {
     this.server = new StellarSDK.SorobanRpc.Server(
       'https://soroban-testnet.stellar.org/',
     );
-    this.trustlessContractId = 'CC33GOPHHQW2F3FEWFK44T47MB5ZUPKWMCGOOBPO3RUXKLAHJDA4A3Z7';
-    this.tokenContractId = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
+    this.trustlessContractId = 'CC6JFRDTJY2BUASVP6HF7BDDSKEL37AITKSVDGAH6Y7MGEKLG7WXDCXR';
+    // this.tokenContractId = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
     this.contract = new StellarSDK.Contract(this.trustlessContractId);
   }
 
@@ -84,11 +84,11 @@ export class ProjectService {
   }
 
   async fundObjective(
-    contractId: string,
-    objectiveId: string,
-    user: string,
+    escrowId: string,
+    partyId: string,
+    spender: string,
     usdcContract: string,
-    freelanceContract: string,
+    from: string,
     secretKey: string,
   ): Promise<any> {
     try {
@@ -97,8 +97,8 @@ export class ProjectService {
         this.sourceKeypair.publicKey(),
       );
 
-      const contractIdBytes = u128ToBytes(contractId);
-      const objectiveIdBigInt = BigInt(objectiveId);
+      const contractIdBytes = u128ToBytes(escrowId);
+      const objectiveIdBigInt = BigInt(partyId);
       const high = StellarSDK.xdr.Uint64.fromString(
         (objectiveIdBigInt >> 64n).toString(),
       );
@@ -119,9 +119,9 @@ export class ProjectService {
             'fund_objective',
             contractIdBytes,
             objectiveIdU128,
-            StellarSDK.Address.fromString(user).toScVal(),
+            StellarSDK.Address.fromString(spender).toScVal(),
             StellarSDK.Address.fromString(usdcContract).toScVal(),
-            StellarSDK.Address.fromString(freelanceContract).toScVal(),
+            StellarSDK.Address.fromString(from).toScVal(),
           ),
         )
         .build();
@@ -153,64 +153,6 @@ export class ProjectService {
       console.error('Error calling fund_objective:', error);
       throw error;
     }
-  }
-
-  async decodeObject(scVal: StellarSDK.xdr.ScVal): Promise<any> {
-    if (scVal.switch() === StellarSDK.xdr.ScValType.scvMap()) {
-      const obj: any = {};
-  
-      scVal.map().forEach((entry: any) => {
-        let key: string;
-        let value: any;
-        console.log('Key (raw):', entry.key);
-        console.log('Value (raw):', entry.val);
-  
-        if (entry.key instanceof StellarSDK.xdr.ScVal) {
-          try {
-            key = Buffer.from(entry.key.sym()).toString('utf-8');
-          } catch (e) {
-            key = 'invalid_key';
-          }
-        } else {
-          key = 'invalid_key';
-        }
-  
-        if (entry.val instanceof StellarSDK.xdr.ScVal) {
-          try {
-            switch (entry.val.switch()) {
-              case StellarSDK.xdr.ScValType.scvU32():
-                value = entry.val.u32();
-                break;
-              case StellarSDK.xdr.ScValType.scvString():
-                value = entry.val.str();
-                break;
-              case StellarSDK.xdr.ScValType.scvBool():
-                value = entry.val.bool();
-                break;
-              default:
-                value = 'unknown_value';
-            }
-          } catch (e) {
-            value = 'invalid_value';
-          }
-        } else {
-          value = 'invalid_value';
-        }
-  
-        obj[key] = value;
-      });
-  
-      return obj;
-    }
-  
-    throw new Error('Unexpected object type');
-  }
-
-  async decodeContractResult(scVal: StellarSDK.xdr.ScVal): Promise<any> {
-    if (scVal.switch() === StellarSDK.xdr.ScValType.scvVec()) {
-      return scVal.vec().map((item: any) => this.decodeObject(item));
-    }
-    throw new Error('Unexpected return value type');
   }
 
   async getProjectsBySpender(spenderAddress: string, secretKey: string): Promise<any> {
@@ -263,11 +205,7 @@ export class ProjectService {
           const resultMetaXdr = getResponse.resultMetaXdr.toXDR();
           const encodedResultMetaXdr = Buffer.from(resultMetaXdr).toString('base64');
 
-          console.log('Encoded resultMetaXdr (base64):', encodedResultMetaXdr); // resultMetaXdr (base64) to decoded
-
-          const resultXdr = getResponse.resultMetaXdr;
-          const returnValue = resultXdr.v3().sorobanMeta().returnValue()
-          const decodedResult = this.decodeContractResult(returnValue);
+          console.log('Encoded resultMetaXdr (JSON):', encodedResultMetaXdr); 
 
           return getResponse;
         } else {
