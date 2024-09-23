@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as StellarSDK from '@stellar/stellar-sdk';
+import { parse } from 'path';
 import { u128ToBytes } from 'src/utils/u128ToBytes';
 
 @Injectable()
@@ -14,7 +15,7 @@ export class ProjectService {
     this.server = new StellarSDK.SorobanRpc.Server(
       'https://soroban-testnet.stellar.org/',
     );
-    this.trustlessContractId = 'CC6JFRDTJY2BUASVP6HF7BDDSKEL37AITKSVDGAH6Y7MGEKLG7WXDCXR';
+    this.trustlessContractId = 'CDRNXBLB5WICYKMZXDLKPY2SX5KGNDZDKF2SD7QTUU7573KSMRSE3ZM7';
     // this.tokenContractId = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
     this.contract = new StellarSDK.Contract(this.trustlessContractId);
   }
@@ -31,7 +32,7 @@ export class ProjectService {
         this.sourceKeypair.publicKey(),
       );
      
-       const adjustedPrices = prices.map((price) => {
+      const adjustedPrices = prices.map((price) => {
         const microUSDC = BigInt(Math.round(parseFloat(price) * 1e6));
         return microUSDC.toString();
       });
@@ -146,7 +147,7 @@ export class ProjectService {
         }
       } else {
         throw new Error(
-          `Transaction submission failed: ${response.errorResult}`,
+          `Transaction submission failed: ${JSON.stringify(response.errorResult)}`,
         );
       }
     } catch (error) {
@@ -155,7 +156,47 @@ export class ProjectService {
     }
   }
 
-  async getProjectsBySpender(spenderAddress: string, secretKey: string): Promise<any> {
+  private microUSDToDecimal(microUSDC: bigint | number): number {
+    return Number(microUSDC) / 1e6;
+  }
+
+  private parseEscrowData(response: StellarSDK.rpc.Api.GetSuccessfulTransactionResponse): any{
+    try {
+      const xdrResult = response.resultMetaXdr;
+      const xdrBuffer = xdrResult.toXDR();
+      const xdrBase64 = xdrBuffer.toString('base64');
+      const transactionMeta = StellarSDK.xdr.TransactionMeta.fromXDR(xdrBase64, 'base64');
+      
+      const contractEvents = transactionMeta.v3().sorobanMeta().events();
+      
+      const lastEvent = contractEvents[contractEvents.length - 1];
+      const scVal = lastEvent.body().value();
+      const contractEventV0 = scVal.data()
+      
+      const escrows = StellarSDK.scValToNative(contractEventV0);
+      return escrows[1].map((escrow: any) => ({
+        escrow_id: Buffer.from(escrow.escrow_id).toString('hex'),
+        spender: escrow.spender,
+        from: escrow.from,
+        parties_count: Number(escrow.parties_count),
+        parties: Object.values(escrow.parties).map((party: any) => ({
+          completed: party.completed,
+          half_paid: this.microUSDToDecimal(Number(party.half_paid)),
+          price: this.microUSDToDecimal(Number(party.price)), 
+        })),
+        completed_parties: Number(escrow.completed_parties),
+        earned_amount: Number(escrow.earned_amount),
+        contract_balance: Number(escrow.contract_balance),
+        cancelled: escrow.cancelled,
+        completed: escrow.completed,
+      }));
+    } catch (error) {
+      console.error('Error parsing escrow data:', error);
+      throw error;
+    }
+  }
+
+  async getProjectsBySpender(spenderAddress: string, page: number, secretKey: string): Promise<any> {
     try {
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
       const account = await this.server.getAccount(
@@ -167,32 +208,33 @@ export class ProjectService {
         throw new Error('Invalid contract ID: Must be 32 bytes in length');
       }
 
+      const limit = 4;
       const hostFunction = StellarSDK.xdr.HostFunction.hostFunctionTypeInvokeContract(
         new StellarSDK.xdr.InvokeContractArgs({
           contractAddress: StellarSDK.xdr.ScAddress.scAddressTypeContract(contractIdBuffer),
           functionName: 'get_projects_by_spender',
           args: [
             StellarSDK.Address.fromString(spenderAddress).toScVal(),
+            StellarSDK.xdr.ScVal.scvU32(Number(page)),
+            StellarSDK.xdr.ScVal.scvU32(limit),
           ],
         })
       );
-      
+
       const transaction = new StellarSDK.TransactionBuilder(account, {
           fee: '100',
         })
         .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
-        .setTimeout(300) 
+        .setTimeout(1000) 
         .addOperation(StellarSDK.Operation.invokeHostFunction({
           func: hostFunction,
         }))
         .build();
       
-      console.log('Sending transaction...');
       let preparedTransaction = await this.server.prepareTransaction(transaction);
       preparedTransaction.sign(this.sourceKeypair);
       const response = await this.server.sendTransaction(preparedTransaction);
-      
-      console.log('Transaction Response:', response);
+
       if (response.status === 'PENDING') {
         let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
   
@@ -202,14 +244,10 @@ export class ProjectService {
         } while (getResponse.status === 'NOT_FOUND');
   
         if (getResponse.status === 'SUCCESS') {
-          const resultMetaXdr = getResponse.resultMetaXdr.toXDR();
-          const encodedResultMetaXdr = Buffer.from(resultMetaXdr).toString('base64');
-
-          console.log('Encoded resultMetaXdr (JSON):', encodedResultMetaXdr); 
-
-          return getResponse;
+          const resultMetaJSON = this.parseEscrowData(getResponse);
+          return resultMetaJSON;
         } else {
-          throw new Error(`Transaction failed: ${getResponse.resultXdr}`);
+          return getResponse
         }
       } else {
         throw new Error(`Transaction submission failed: ${JSON.stringify(response.errorResult)}`);

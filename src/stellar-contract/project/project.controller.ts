@@ -50,10 +50,11 @@ export class ProjectController {
   @Get('by-client')
   async getProjectsByClient(
     @Query('spenderAddress') spenderAddress: string,
+    @Query('page') page: number,
     @Query('secretKey') secretKey: string,
   ) {
     try {
-      const projects = await this.projectService.getProjectsBySpender(spenderAddress, secretKey);
+      const projects = await this.projectService.getProjectsBySpender(spenderAddress, page, secretKey);
       return projects;
     } catch (error) {
       throw new HttpException('Failed to fetch projects by client', HttpStatus.INTERNAL_SERVER_ERROR);
