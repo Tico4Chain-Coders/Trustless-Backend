@@ -32,6 +32,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@stellar/freighter-api": "^3.0.0",
     "@stellar/stellar-sdk": "^12.3.0",
+    "dotenv": "^16.4.5",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
     "reflect-metadata": "^0.2.0",
