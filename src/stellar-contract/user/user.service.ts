@@ -1,86 +1,89 @@
-import { Injectable } from '@nestjs/common';
-import * as StellarSDK from '@stellar/stellar-sdk';
+import { Injectable } from "@nestjs/common";
+import * as StellarSDK from "@stellar/stellar-sdk";
 
 @Injectable()
 export class UserService {
+  // Initialize variables.
+  private server: StellarSDK.SorobanRpc.Server;
+  private contract: StellarSDK.Contract;
+  private sourceKeypair: StellarSDK.Keypair;
+  private trustlessContractId: string;
 
-    // Initialize variables.
-    private server: StellarSDK.SorobanRpc.Server; 
-    private contract: StellarSDK.Contract;
-    private sourceKeypair: StellarSDK.Keypair;
-    private trustlessContractId: string;
+  constructor() {
+    // testnet server
+    this.server = new StellarSDK.SorobanRpc.Server(
+      "https://soroban-testnet.stellar.org/",
+    );
 
-    constructor() {
+    // Freelancer-Contract
+    this.trustlessContractId =
+      "CDRNXBLB5WICYKMZXDLKPY2SX5KGNDZDKF2SD7QTUU7573KSMRSE3ZM7";
 
-        // testnet server
-        this.server = new StellarSDK.SorobanRpc.Server('https://soroban-testnet.stellar.org/');
+    // Contract variable
+    this.contract = new StellarSDK.Contract(this.trustlessContractId);
+  }
 
-        // Freelancer-Contract
-        this.trustlessContractId = 'CCOOAVIBQXEDYF2J6FR2BPPJ7XPRHWXKCDH27OIXXECAUV4A65JPECXN';
-        
-        // Contract variable
-        this.contract = new StellarSDK.Contract(this.trustlessContractId);
-    }
+  async register(
+    userAddress: string,
+    name: string,
+    email: string,
+    secretKey: string,
+  ): Promise<number> {
+    try {
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
 
-    async register(userAddress: string, name: string, email: string, secretKey: string): Promise<number> {
+      // Account that realize the transaction
+      const account = await this.server.getAccount(
+        this.sourceKeypair.publicKey(),
+      );
 
-        try {
+      const transaction = new StellarSDK.TransactionBuilder(account, {
+        fee: "100000",
+      })
+        .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
+        .setTimeout(30)
+        .addOperation(
+          this.contract.call(
+            "register",
+            StellarSDK.Address.fromString(userAddress).toScVal(),
+            StellarSDK.nativeToScVal(name),
+            StellarSDK.nativeToScVal(email),
+          ),
+        )
+        .build();
 
-            this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      // Getting prepared the transaction
+      let preparedTransaction =
+        await this.server.prepareTransaction(transaction);
 
-            // Account that realize the transaction
-            const account = await this.server.getAccount(this.sourceKeypair.publicKey());
+      // Getting signed the transaction
+      preparedTransaction.sign(this.sourceKeypair);
 
-            const transaction = new StellarSDK.TransactionBuilder( account, {
-                fee: "100000",
-            })
-                .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
-                .setTimeout(30)
-                .addOperation(
-                    this.contract.call(
-                        'register',
-                        StellarSDK.Address.fromString(userAddress).toScVal(),
-                        StellarSDK.nativeToScVal(name),
-                        StellarSDK.nativeToScVal(email)
-                    )
-                )
-                .build();
-            
-            // Getting prepared the transaction
-            let preparedTransaction = await this.server.prepareTransaction(transaction);
+      // Sending the transaction
+      const response = await this.server.sendTransaction(preparedTransaction);
 
-            // Getting signed the transaction
-            preparedTransaction.sign(this.sourceKeypair);
+      if (response.status === "PENDING") {
+        let getResponse;
 
-            // Sending the transaction
-            const response = await this.server.sendTransaction(preparedTransaction);
+        do {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          getResponse = await this.server.getTransaction(response.hash);
+        } while (getResponse.status === "NOT_FOUND");
 
-            if ( response.status === "PENDING" ) {
-                
-                let getResponse;
-
-                do {
-                  await new Promise(resolve => setTimeout(resolve, 1000));
-                  getResponse = await this.server.getTransaction(response.hash);
-                } while (getResponse.status === "NOT_FOUND");
-      
-                if ( getResponse.status === "SUCCESS" ) {
-                    console.log(`Transaction successful: ${JSON.stringify(getResponse)}`);
-                    return getResponse;
-                } else {
-                  throw new Error(`Transaction failed: ${getResponse.resultXdr}`);
-                }
-            } else {
-                throw new Error(`Transaction submission failed: ${response.errorResult}`);
-            }
-
-
-        } catch( error ) {
-            console.error('Error calling register function:', error);
-            throw error;
+        if (getResponse.status === "SUCCESS") {
+          console.log(`Transaction successful: ${JSON.stringify(getResponse)}`);
+          return getResponse;
+        } else {
+          throw new Error(`Transaction failed: ${getResponse.resultXdr}`);
         }
-
-
+      } else {
+        throw new Error(
+          `Transaction submission failed: ${response.errorResult}`,
+        );
+      }
+    } catch (error) {
+      console.error("Error calling register function:", error);
+      throw error;
     }
-
+  }
 }
