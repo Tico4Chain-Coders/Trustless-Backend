@@ -4,15 +4,6 @@ import {
   HttpException,
   HttpStatus,
   Post,
-
-
-
-
-
-
-
-
-  
 } from "@nestjs/common";
 import { UserService } from "./user.service";
 
