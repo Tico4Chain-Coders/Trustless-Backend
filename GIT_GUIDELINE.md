@@ -2,11 +2,31 @@
 
 This guideline aims to establish a clear set of conventions for commit messages in this project. Following these conventions helps maintain a clear and consistent commit history.
 
-## Commit Message Structure
+## Commit and Branches Structure
 
-A commit message should follow the format:
+The message should follow the format:
 
+**NOTE:** ALL THE COMMITS AND BRANCHES SHOULD BE IN LOWERCASE
 
+#### Types of Branches
+
+- **feat**: New features
+- **fix**: Bug fixes
+- **docs**: Documentation updates
+- **style**: Style changes
+- **refactor**: Refactoring code
+- **perf**: Performance improvements
+- **test**: Test-related changes
+- **build**: Build system changes
+- **ci**: CI changes
+- **chore**: Other changes
+
+#### Example Branch Names
+
+- `feat/user-registration`
+- `fix/product-price-validation`
+- `docs/readme-update`
+- `style/button-styling`
 
 
 ### Types of Commits
@@ -22,11 +42,6 @@ A commit message should follow the format:
 - `ci`: Changes to CI configuration files and scripts
 - `chore`: Maintenance changes that do not fall into any of the other categories
 
-### Scope
-
-The scope is optional and can be the name of the module or component affected by the change. For example:
-
-
 ### Message
 
 The message should be clear and descriptive, including the "what" and "why" of the change. It should be concise (less than 72 characters).
@@ -37,11 +52,5 @@ The message should be clear and descriptive, including the "what" and "why" of t
 - `fix: fix price validation error`
 - `docs: update installation section`
 
-## Additional Notes
-
-- Use the present tense in commit messages (e.g., "add" instead of "added").
-- Keep the message brief and direct.
-- If necessary, add an additional message body for more context. Separate the body from the header with a blank line.
-
-### Example Commit with Body
+## Thanks for follow the guidelines
 
