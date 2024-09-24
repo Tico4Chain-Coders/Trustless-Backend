@@ -12,12 +12,13 @@ export class ProjectService {
   // private tokenContractId: string;
 
   constructor() {
-    this.server = new StellarSDK.SorobanRpc.Server(
-      "https://soroban-testnet.stellar.org/",
-    );
-    this.trustlessContractId =
-      "CDRNXBLB5WICYKMZXDLKPY2SX5KGNDZDKF2SD7QTUU7573KSMRSE3ZM7";
-    // this.tokenContractId = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
+    // testnet server
+    this.server = new StellarSDK.SorobanRpc.Server(`${process.env.SERVER_URL}`);
+
+    // Freelancer-Contract
+    this.trustlessContractId = process.env.TRUSTLESS_CONTRACT_ID;
+
+    // Contract variable
     this.contract = new StellarSDK.Contract(this.trustlessContractId);
   }
 
