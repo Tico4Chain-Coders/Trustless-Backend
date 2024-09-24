@@ -2,9 +2,10 @@
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
 
-## Description
+# Trustless Work Private API
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Description
+This repository contains the API code for interacting with Trustless smart contracts. It connects the frontend with the blockchain, ensuring secure communication and reliable contract management within the dApp.
 
 ## Project setup
 
