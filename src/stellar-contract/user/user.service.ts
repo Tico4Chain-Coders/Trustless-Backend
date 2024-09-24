@@ -11,13 +11,10 @@ export class UserService {
 
   constructor() {
     // testnet server
-    this.server = new StellarSDK.SorobanRpc.Server(
-      "https://soroban-testnet.stellar.org/",
-    );
+    this.server = new StellarSDK.SorobanRpc.Server(`${process.env.SERVER_URL}`);
 
     // Freelancer-Contract
-    this.trustlessContractId =
-      "CDRNXBLB5WICYKMZXDLKPY2SX5KGNDZDKF2SD7QTUU7573KSMRSE3ZM7";
+    this.trustlessContractId = process.env.TRUSTLESS_CONTRACT_ID;
 
     // Contract variable
     this.contract = new StellarSDK.Contract(this.trustlessContractId);
