@@ -48,7 +48,11 @@ npm run test:e2e
 npm run test:cov
 ```
 
+## Execute the EndPoints
+### Use Postman, ThunderClient, or another tools to Http requests.
+
+Follow the API Doc, and check your Contract information here: [TestNet Stellar](https://stellar.expert/explorer/testnet)
+
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-
