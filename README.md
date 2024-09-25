@@ -1,5 +1,10 @@
 <p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
+  <a href="http://nestjs.com/" target="blank">
+    <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" />
+  </a>
+  <a href="http://nestjs.com/" target="blank">
+    <img src="https://github.com/user-attachments/assets/7b1db62c-6d39-4922-9d0c-4ba4b522b49a" width="120" alt="Nest Logo" />
+  </a>
 </p>
 
 # Trustless Work Private API
