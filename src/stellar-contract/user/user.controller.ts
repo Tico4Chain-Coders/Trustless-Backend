@@ -33,4 +33,20 @@ export class UserController {
       );
     }
   }
+
+  @Post("login")
+  async login(
+    @Body("userAddress") userAddress: string,
+    @Body("secretKey") secretKey: string,
+  ): Promise<string> {
+    try {
+      const result = await this.userService.login(userAddress, secretKey);
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to interact with contract",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }
