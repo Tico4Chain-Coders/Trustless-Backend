@@ -41,7 +41,6 @@ export class ProjectController {
     @Body("escrowId") escrowId: string,
     @Body("partyId") partyId: string,
     @Body("spender") spender: string,
-    @Body("usdcContract") usdcContract: string,
     @Body("from") from: string,
     @Body("secretKey") secretKey: string,
   ): Promise<any> {
@@ -50,7 +49,6 @@ export class ProjectController {
         escrowId,
         partyId,
         spender,
-        usdcContract,
         from,
         secretKey,
       );
@@ -74,6 +72,42 @@ export class ProjectController {
         spenderAddress,
         page,
         secretKey,
+      );
+      return projects;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to fetch projects by client",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get("get-balance")
+  async getBalance(
+    @Query("address") address: string,
+    @Query("secretKey") secretKey: string,
+  ) {
+    try {
+      const projects = await this.projectService.getBalance(
+        address,
+        secretKey,
+      );
+      return projects;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to fetch projects by client",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post("set-trustline")
+  async setTrustline(
+    @Query("sourceSecretKey") sourceSecretKey: string,
+  ) {
+    try {
+      const projects = await this.projectService.establishTrustline(
+        sourceSecretKey,
       );
       return projects;
     } catch (error) {
