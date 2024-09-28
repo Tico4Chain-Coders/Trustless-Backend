@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import * as StellarSDK from "@stellar/stellar-sdk";
-import { parse } from "path";
 import { u128ToBytes } from "src/utils/u128ToBytes";
 
 @Injectable()
@@ -86,7 +85,7 @@ export class ProjectService {
     }
   }
 
-  async fundObjective(
+  async fundParty(
     escrowId: string,
     partyId: string,
     spender: string,
@@ -133,7 +132,7 @@ export class ProjectService {
       preparedTransaction.sign(this.sourceKeypair);
 
       const response = await this.server.sendTransaction(preparedTransaction);
-
+      console.log({ response })
       if (response.status === "PENDING") {
         let getResponse;
 
@@ -205,7 +204,7 @@ export class ProjectService {
 
   private parseBalanceByAddressData(
     response: StellarSDK.rpc.Api.GetSuccessfulTransactionResponse,
-  ): { balance: number } {
+  ): number {
     try {
       const xdrResult = response.resultMetaXdr;
       const xdrBuffer = xdrResult.toXDR();
@@ -222,15 +221,15 @@ export class ProjectService {
       const contractEventV0 = scVal.data();
 
       const data = StellarSDK.scValToNative(contractEventV0);
-      const balance = Number(data[2]) / 1_000_000;
-      return { balance };
+      const value = Number(data[2]) / 1_000_000;
+      return value;
     } catch (error) {
       console.error("Error parsing escrow data:", error);
       throw error;
     }
   }
 
-  async getProjectsBySpender(
+  async getEscrowsBySpender(
     spenderAddress: string,
     page: number,
     secretKey: string,
@@ -387,8 +386,127 @@ export class ProjectService {
         } while (getResponse.status === "NOT_FOUND");
 
         if (getResponse.status === "SUCCESS") {
-          const resultMetaJSON = this.parseBalanceByAddressData(getResponse);
-          return resultMetaJSON;
+          const result = this.parseBalanceByAddressData(getResponse);
+          return { balance: result };
+        } else {
+          return getResponse;
+        }
+      } else {
+        throw new Error(
+          `Transaction submission failed: ${JSON.stringify(response.errorResult)}`,
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching projects by client:", error);
+      throw error;
+    }
+  }
+
+  async approve_amount( 
+    from: string,
+    spender: string,
+    amount: string,
+    secretKey: string,
+  ): Promise<any> {
+    try {
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      const account = await this.server.getAccount(this.sourceKeypair.publicKey());
+  
+      const microAmount = BigInt(Math.round(parseFloat(amount) * 1e6));
+      const high = microAmount >> 64n;
+      const low = microAmount & BigInt("0xFFFFFFFFFFFFFFFF");
+
+      const transaction = new StellarSDK.TransactionBuilder(account, {
+        fee: "100",
+      })
+        .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
+        .setTimeout(1000)
+        .addOperation(
+          this.contract.call(
+            "approve_amounts",
+            StellarSDK.Address.fromString(from).toScVal(),
+            StellarSDK.Address.fromString(spender).toScVal(),
+            StellarSDK.xdr.ScVal.scvI128(
+              new StellarSDK.xdr.Int128Parts({
+                hi: StellarSDK.xdr.Int64.fromString(high.toString()),
+                lo: StellarSDK.xdr.Uint64.fromString(low.toString()),
+              })
+            ),
+            StellarSDK.Address.fromString(this.usdcToken).toScVal(),
+          )
+        )
+        .build();
+  
+      let preparedTransaction = await this.server.prepareTransaction(transaction);
+      preparedTransaction.sign(this.sourceKeypair);
+      const response = await this.server.sendTransaction(preparedTransaction);
+
+      if (response.status === "PENDING") {
+        let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
+  
+        do {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          getResponse = await this.server.getTransaction(response.hash);
+        } while (getResponse.status === "NOT_FOUND");
+  
+        if (getResponse.status === "SUCCESS") {
+          return getResponse;
+        } else {
+          return getResponse;
+        }
+      } else {
+        throw new Error(
+          `Transaction submission failed: ${JSON.stringify(response.errorResult)}`,
+        );
+      }
+    } catch (error) {
+      console.error("Error fetching projects by client:", error);
+      throw error;
+    }
+  }
+
+  async getAllowance(
+    from: string,
+    spender: string,
+    secretKey: string,
+  ): Promise<any> {
+    try {
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      const account = await this.server.getAccount(
+        this.sourceKeypair.publicKey(),
+      );
+
+      const transaction = new StellarSDK.TransactionBuilder(account, {
+        fee: "100",
+      })
+        .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
+        .setTimeout(1000)
+        .addOperation(
+          this.contract.call(
+            "get_allowance",
+            StellarSDK.Address.fromString(from).toScVal(),
+            StellarSDK.Address.fromString(spender).toScVal(),
+            StellarSDK.Address.fromString(this.usdcToken).toScVal(),
+          )
+        )
+        .build();
+
+      let preparedTransaction =
+        await this.server.prepareTransaction(transaction);
+      preparedTransaction.sign(this.sourceKeypair);
+      const response = await this.server.sendTransaction(preparedTransaction);
+
+      if (response.status === "PENDING") {
+        let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
+
+        do {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          getResponse = await this.server.getTransaction(response.hash);
+        } while (getResponse.status === "NOT_FOUND");
+
+        if (getResponse.status === "SUCCESS") {
+          const result = this.parseBalanceByAddressData(getResponse);
+          return { allowance: result };
         } else {
           return getResponse;
         }

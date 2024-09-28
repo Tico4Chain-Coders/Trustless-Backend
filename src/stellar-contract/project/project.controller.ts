@@ -36,7 +36,7 @@ export class ProjectController {
     }
   }
 
-  @Post("fund-objective")
+  @Post("fund-party")
   async fundObjective(
     @Body("escrowId") escrowId: string,
     @Body("partyId") partyId: string,
@@ -45,7 +45,7 @@ export class ProjectController {
     @Body("secretKey") secretKey: string,
   ): Promise<any> {
     try {
-      const result = await this.projectService.fundObjective(
+      const result = await this.projectService.fundParty(
         escrowId,
         partyId,
         spender,
@@ -61,14 +61,14 @@ export class ProjectController {
     }
   }
 
-  @Get("by-client")
+  @Get("get-escrows-by-client")
   async getProjectsByClient(
     @Query("spenderAddress") spenderAddress: string,
     @Query("page") page: number,
     @Query("secretKey") secretKey: string,
   ) {
     try {
-      const projects = await this.projectService.getProjectsBySpender(
+      const projects = await this.projectService.getEscrowsBySpender(
         spenderAddress,
         page,
         secretKey,
@@ -101,12 +101,56 @@ export class ProjectController {
     }
   }
 
+  @Get("get-allowance")
+  async getAllowance(
+    @Query("from") from: string,
+    @Query("spender") spender: string,
+    @Query("secretKey") secretKey: string,
+  ) {
+    try {
+      const projects = await this.projectService.getAllowance(
+        from,
+        spender,
+        secretKey,
+      );
+      return projects;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to fetch projects by client",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Post("set-trustline")
   async setTrustline(
     @Query("sourceSecretKey") sourceSecretKey: string,
   ) {
     try {
       const projects = await this.projectService.establishTrustline(
+        sourceSecretKey,
+      );
+      return projects;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to fetch projects by client",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post("approve")
+  async approve(
+    @Query("from") from: string,
+    @Query("spender") spender: string,
+    @Query("amount") amount: string,
+    @Query("sourceSecretKey") sourceSecretKey: string,
+  ) {
+    try {
+      const projects = await this.projectService.approve_amount(
+        from,
+        spender,
+        amount,
         sourceSecretKey,
       );
       return projects;
