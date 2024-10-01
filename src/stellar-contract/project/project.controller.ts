@@ -88,10 +88,7 @@ export class ProjectController {
     @Query("secretKey") secretKey: string,
   ) {
     try {
-      const projects = await this.projectService.getBalance(
-        address,
-        secretKey,
-      );
+      const projects = await this.projectService.getBalance(address, secretKey);
       return projects;
     } catch (error) {
       throw new HttpException(
@@ -123,13 +120,10 @@ export class ProjectController {
   }
 
   @Post("set-trustline")
-  async setTrustline(
-    @Query("sourceSecretKey") sourceSecretKey: string,
-  ) {
+  async setTrustline(@Query("sourceSecretKey") sourceSecretKey: string) {
     try {
-      const projects = await this.projectService.establishTrustline(
-        sourceSecretKey,
-      );
+      const projects =
+        await this.projectService.establishTrustline(sourceSecretKey);
       return projects;
     } catch (error) {
       throw new HttpException(
