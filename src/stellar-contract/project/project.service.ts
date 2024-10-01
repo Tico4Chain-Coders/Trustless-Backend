@@ -1,5 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import * as StellarSDK from "@stellar/stellar-sdk";
+import { adjustPricesToMicroUSDC, microUSDToDecimal, parseEscrowData, parseBalanceByAddressData } from "src/utils/parse.utils";
+import { buildTransaction, signAndSendTransaction } from "src/utils/transaction.utils";
 import { u128ToBytes } from "src/utils/u128ToBytes";
 
 @Injectable()
@@ -19,75 +21,51 @@ export class ProjectService {
     this.contract = new StellarSDK.Contract(process.env.TRUSTLESS_CONTRACT_ID);
   }
 
-  async initializeEscrow(
-    freelancer: string,
+  async createEngagement(
+    serviceProvider: string,
     prices: string[],
-    user: string,
+    client: string,
     secretKey: string,
   ): Promise<number> {
     try {
+
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
 
-      const adjustedPrices = prices.map((price) => {
-        const microUSDC = BigInt(Math.round(parseFloat(price) * 1e6));
-        return microUSDC.toString();
-      });
+      // Funcion de src/utils/price, que ajusta el precio.
+      const adjustedPrices = adjustPricesToMicroUSDC(prices);
 
       const scValPrices = StellarSDK.nativeToScVal(adjustedPrices, {
         type: "u128",
       });
 
-      const transaction = new StellarSDK.TransactionBuilder(account, {
-        fee: "100",
-      })
-        .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
-        .setTimeout(30)
-        .addOperation(
-          this.contract.call(
-            "initialize_escrow",
-            StellarSDK.Address.fromString(freelancer).toScVal(),
-            scValPrices,
-            StellarSDK.Address.fromString(user).toScVal(),
-          ),
+      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
+      const operations = [
+        this.contract.call(
+          "initialize_escrow",
+          StellarSDK.Address.fromString(serviceProvider).toScVal(),
+          scValPrices,
+          StellarSDK.Address.fromString(client).toScVal(),
         )
-        .build();
+      ];
 
-      let preparedTransaction =
-        await this.server.prepareTransaction(transaction);
-      preparedTransaction.sign(this.sourceKeypair);
+      // Se llama a la funcion que ejecuta la creacion de la transaccion.
+      const transaction = buildTransaction(account, operations);
 
-      const response = await this.server.sendTransaction(preparedTransaction);
+      // Firma y envia la transaccion al smart contract.
+      return await signAndSendTransaction(transaction, this.sourceKeypair, this.server, true);
 
-      if (response.status === "PENDING") {
-        let getResponse;
-
-        do {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          getResponse = await this.server.getTransaction(response.hash);
-        } while (getResponse.status === "NOT_FOUND");
-
-        if (getResponse.status === "SUCCESS") {
-          return getResponse;
-        } else {
-          throw new Error(`Transaction failed: ${getResponse.resultXdr}`);
-        }
-      } else {
-        throw new Error(
-          `Transaction submission failed: ${response.errorResult}`,
-        );
-      }
     } catch (error) {
       console.error("Error calling create_project:", error);
       throw error;
     }
   }
 
-  async fundParty(
+  async fundEscrow(
+    engamentId: string,
     escrowId: string,
-    partyId: string,
     spender: string,
     from: string,
     secretKey: string,
@@ -98,8 +76,8 @@ export class ProjectService {
         this.sourceKeypair.publicKey(),
       );
 
-      const contractIdBytes = u128ToBytes(escrowId);
-      const objectiveIdBigInt = BigInt(partyId);
+      const contractIdBytes = u128ToBytes(engamentId);
+      const objectiveIdBigInt = BigInt(escrowId);
       const high = StellarSDK.xdr.Uint64.fromString(
         (objectiveIdBigInt >> 64n).toString(),
       );
@@ -110,121 +88,26 @@ export class ProjectService {
         new StellarSDK.xdr.UInt128Parts({ hi: high, lo: low }),
       );
 
-      const transaction = new StellarSDK.TransactionBuilder(account, {
-        fee: "10000",
-      })
-        .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
-        .setTimeout(30)
-        .addOperation(
-          this.contract.call(
-            "fund_objective",
-            contractIdBytes,
-            objectiveIdU128,
-            StellarSDK.Address.fromString(spender).toScVal(),
-            StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-            StellarSDK.Address.fromString(from).toScVal(),
-          ),
+      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
+      const operations = [
+        this.contract.call(
+          "fund_objective",
+          contractIdBytes,
+          objectiveIdU128,
+          StellarSDK.Address.fromString(spender).toScVal(),
+          StellarSDK.Address.fromString(this.usdcToken).toScVal(),
+          StellarSDK.Address.fromString(from).toScVal(),
         )
-        .build();
+      ];
 
-      let preparedTransaction =
-        await this.server.prepareTransaction(transaction);
-      preparedTransaction.sign(this.sourceKeypair);
+      // Se llama a la funcion que ejecuta la creacion de la transaccion.
+      const transaction = buildTransaction(account, operations);
 
-      const response = await this.server.sendTransaction(preparedTransaction);
-      console.log({ response })
-      if (response.status === "PENDING") {
-        let getResponse;
+      // Firma y envia la transaccion al smart contract.
+      return await signAndSendTransaction(transaction, this.sourceKeypair, this.server, true);
 
-        do {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          getResponse = await this.server.getTransaction(response.hash);
-        } while (getResponse.status === "NOT_FOUND");
-
-        if (getResponse.status === "SUCCESS") {
-          return getResponse;
-        } else {
-          throw new Error(`Transaction failed: ${getResponse.resultXdr}`);
-        }
-      } else {
-        throw new Error(
-          `Transaction submission failed: ${JSON.stringify(response.errorResult)}`,
-        );
-      }
     } catch (error) {
       console.error("Error calling fund_objective:", error);
-      throw error;
-    }
-  }
-
-  private microUSDToDecimal(microUSDC: bigint | number): number {
-    return Number(microUSDC) / 1e6;
-  }
-
-  private parseEscrowData(
-    response: StellarSDK.rpc.Api.GetSuccessfulTransactionResponse,
-  ): any {
-    try {
-      const xdrResult = response.resultMetaXdr;
-      const xdrBuffer = xdrResult.toXDR();
-      const xdrBase64 = xdrBuffer.toString("base64");
-      const transactionMeta = StellarSDK.xdr.TransactionMeta.fromXDR(
-        xdrBase64,
-        "base64",
-      );
-
-      const contractEvents = transactionMeta.v3().sorobanMeta().events();
-
-      const lastEvent = contractEvents[contractEvents.length - 1];
-      const scVal = lastEvent.body().value();
-      const contractEventV0 = scVal.data();
-
-      const escrows = StellarSDK.scValToNative(contractEventV0);
-      return escrows[1].map((escrow: any) => ({
-        escrow_id: Buffer.from(escrow.escrow_id).toString("hex"),
-        spender: escrow.spender,
-        from: escrow.from,
-        parties_count: Number(escrow.parties_count),
-        parties: Object.values(escrow.parties).map((party: any) => ({
-          completed: party.completed,
-          half_paid: this.microUSDToDecimal(Number(party.half_paid)),
-          price: this.microUSDToDecimal(Number(party.price)),
-        })),
-        completed_parties: Number(escrow.completed_parties),
-        earned_amount: Number(escrow.earned_amount),
-        contract_balance: Number(escrow.contract_balance),
-        cancelled: escrow.cancelled,
-        completed: escrow.completed,
-      }));
-    } catch (error) {
-      console.error("Error parsing escrow data:", error);
-      throw error;
-    }
-  }
-
-  private parseBalanceByAddressData(
-    response: StellarSDK.rpc.Api.GetSuccessfulTransactionResponse,
-  ): number {
-    try {
-      const xdrResult = response.resultMetaXdr;
-      const xdrBuffer = xdrResult.toXDR();
-      const xdrBase64 = xdrBuffer.toString("base64");
-      const transactionMeta = StellarSDK.xdr.TransactionMeta.fromXDR(
-        xdrBase64,
-        "base64",
-      );
-
-      const contractEvents = transactionMeta.v3().sorobanMeta().events();
-
-      const lastEvent = contractEvents[contractEvents.length - 1];
-      const scVal = lastEvent.body().value();
-      const contractEventV0 = scVal.data();
-
-      const data = StellarSDK.scValToNative(contractEventV0);
-      const value = Number(data[2]) / 1_000_000;
-      return value;
-    } catch (error) {
-      console.error("Error parsing escrow data:", error);
       throw error;
     }
   }
@@ -262,42 +145,23 @@ export class ProjectService {
           }),
         );
 
-      const transaction = new StellarSDK.TransactionBuilder(account, {
-        fee: "100",
-      })
-        .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
-        .setTimeout(1000)
-        .addOperation(
-          StellarSDK.Operation.invokeHostFunction({
-            func: hostFunction,
-          }),
-        )
-        .build();
+      const operations = [
+        StellarSDK.Operation.invokeHostFunction({
+          func: hostFunction,
+        }),
+      ];
 
-      let preparedTransaction =
-        await this.server.prepareTransaction(transaction);
-      preparedTransaction.sign(this.sourceKeypair);
-      const response = await this.server.sendTransaction(preparedTransaction);
+      const transaction = buildTransaction(account, operations);
 
-      if (response.status === "PENDING") {
-        let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
+      // Firma y envia la transaccion al smart contract.
+      return await signAndSendTransaction(
+        transaction, 
+        this.sourceKeypair, 
+        this.server, 
+        true,
+        (response) => parseEscrowData(response as StellarSDK.rpc.Api.GetSuccessfulTransactionResponse)
+      );
 
-        do {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          getResponse = await this.server.getTransaction(response.hash);
-        } while (getResponse.status === "NOT_FOUND");
-
-        if (getResponse.status === "SUCCESS") {
-          const resultMetaJSON = this.parseEscrowData(getResponse);
-          return resultMetaJSON;
-        } else {
-          return getResponse;
-        }
-      } else {
-        throw new Error(
-          `Transaction submission failed: ${JSON.stringify(response.errorResult)}`,
-        );
-      }
     } catch (error) {
       console.error("Error fetching projects by client:", error);
       throw error;
@@ -312,36 +176,17 @@ export class ProjectService {
       const account = await this.server.getAccount(this.sourceKeypair.publicKey());
   
       const usdcAsset = new StellarSDK.Asset("USDC", this.usdcTokenPublic);
-      const transaction = new StellarSDK.TransactionBuilder(account, {
-        fee: '100',
-        networkPassphrase: StellarSDK.Networks.TESTNET,
-      })
-      .addOperation(StellarSDK.Operation.changeTrust({ asset: usdcAsset }))
-      .setTimeout(30)
-      .build();
-  
-      transaction.sign(this.sourceKeypair);
-      const result = await this.server.sendTransaction(transaction);
-      let txHash = result.hash;
 
-      if (result.status === "PENDING") {
-        let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
+      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
+      const operations = [
+        StellarSDK.Operation.changeTrust({ asset: usdcAsset })
+      ]
 
-        do {
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          getResponse = await this.server.getTransaction(txHash);
-        } while (getResponse.status === "NOT_FOUND");
+      // Se llama a la funcion que ejecuta la creacion de la transaccion.
+      const transaction = buildTransaction(account, operations);
 
-        if (getResponse.status === "SUCCESS") {
-          return getResponse;
-        } else {
-          throw new Error(`Transaction failed: ${getResponse.status}`);
-        }
-    } else {
-      throw new Error(
-        `Transaction submission failed: ${JSON.stringify(result.errorResult)}`
-      );
-    }
+      return await signAndSendTransaction(transaction, this.sourceKeypair, this.server, false);
+    
     } catch (error) {
       console.log('Error:', error);
       throw error;
@@ -358,44 +203,30 @@ export class ProjectService {
         this.sourceKeypair.publicKey(),
       );
 
-      const transaction = new StellarSDK.TransactionBuilder(account, {
-        fee: "100",
-      })
-        .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
-        .setTimeout(1000)
-        .addOperation(
-          this.contract.call(
-            "get_balance",
-            StellarSDK.Address.fromString(address).toScVal(),
-            StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-          )
+      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
+      const operations = [
+        this.contract.call(
+          "get_balance",
+          StellarSDK.Address.fromString(address).toScVal(),
+          StellarSDK.Address.fromString(this.usdcToken).toScVal(),
         )
-        .build();
+      ];
 
-      let preparedTransaction =
-        await this.server.prepareTransaction(transaction);
-      preparedTransaction.sign(this.sourceKeypair);
-      const response = await this.server.sendTransaction(preparedTransaction);
+      // Se llama a la funcion que ejecuta la creacion de la transaccion.
+      const transaction = buildTransaction(account, operations);
 
-      if (response.status === "PENDING") {
-        let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
-
-        do {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          getResponse = await this.server.getTransaction(response.hash);
-        } while (getResponse.status === "NOT_FOUND");
-
-        if (getResponse.status === "SUCCESS") {
-          const result = this.parseBalanceByAddressData(getResponse);
-          return { balance: result };
-        } else {
-          return getResponse;
+      // Firma y envia la transaccion al smart contract.
+      return await signAndSendTransaction(
+        transaction, 
+        this.sourceKeypair, 
+        this.server, 
+        true,
+        (response) => {
+          const result = parseBalanceByAddressData(response as StellarSDK.rpc.Api.GetSuccessfulTransactionResponse)
+          return { balance: result }
         }
-      } else {
-        throw new Error(
-          `Transaction submission failed: ${JSON.stringify(response.errorResult)}`,
-        );
-      }
+      );
+
     } catch (error) {
       console.error("Error fetching projects by client:", error);
       throw error;
@@ -416,49 +247,28 @@ export class ProjectService {
       const high = microAmount >> 64n;
       const low = microAmount & BigInt("0xFFFFFFFFFFFFFFFF");
 
-      const transaction = new StellarSDK.TransactionBuilder(account, {
-        fee: "100",
-      })
-        .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
-        .setTimeout(1000)
-        .addOperation(
-          this.contract.call(
-            "approve_amounts",
-            StellarSDK.Address.fromString(from).toScVal(),
-            StellarSDK.Address.fromString(spender).toScVal(),
-            StellarSDK.xdr.ScVal.scvI128(
-              new StellarSDK.xdr.Int128Parts({
-                hi: StellarSDK.xdr.Int64.fromString(high.toString()),
-                lo: StellarSDK.xdr.Uint64.fromString(low.toString()),
-              })
-            ),
-            StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-          )
+      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
+      const operations = [
+        this.contract.call(
+          "approve_amounts",
+          StellarSDK.Address.fromString(from).toScVal(),
+          StellarSDK.Address.fromString(spender).toScVal(),
+          StellarSDK.xdr.ScVal.scvI128(
+            new StellarSDK.xdr.Int128Parts({
+              hi: StellarSDK.xdr.Int64.fromString(high.toString()),
+              lo: StellarSDK.xdr.Uint64.fromString(low.toString()),
+            })
+          ),
+          StellarSDK.Address.fromString(this.usdcToken).toScVal(),
         )
-        .build();
-  
-      let preparedTransaction = await this.server.prepareTransaction(transaction);
-      preparedTransaction.sign(this.sourceKeypair);
-      const response = await this.server.sendTransaction(preparedTransaction);
+      ];
 
-      if (response.status === "PENDING") {
-        let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
-  
-        do {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          getResponse = await this.server.getTransaction(response.hash);
-        } while (getResponse.status === "NOT_FOUND");
-  
-        if (getResponse.status === "SUCCESS") {
-          return getResponse;
-        } else {
-          return getResponse;
-        }
-      } else {
-        throw new Error(
-          `Transaction submission failed: ${JSON.stringify(response.errorResult)}`,
-        );
-      }
+      // Se llama a la funcion que ejecuta la creacion de la transaccion.
+      const transaction = buildTransaction(account, operations);
+
+      // Firma y envia la transaccion al smart contract.
+      return await signAndSendTransaction(transaction, this.sourceKeypair, this.server, true);
+      
     } catch (error) {
       console.error("Error fetching projects by client:", error);
       throw error;
@@ -476,45 +286,31 @@ export class ProjectService {
         this.sourceKeypair.publicKey(),
       );
 
-      const transaction = new StellarSDK.TransactionBuilder(account, {
-        fee: "100",
-      })
-        .setNetworkPassphrase(StellarSDK.Networks.TESTNET)
-        .setTimeout(1000)
-        .addOperation(
-          this.contract.call(
-            "get_allowance",
-            StellarSDK.Address.fromString(from).toScVal(),
-            StellarSDK.Address.fromString(spender).toScVal(),
-            StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-          )
+      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
+      const operations = [
+        this.contract.call(
+          "get_allowance",
+          StellarSDK.Address.fromString(from).toScVal(),
+          StellarSDK.Address.fromString(spender).toScVal(),
+          StellarSDK.Address.fromString(this.usdcToken).toScVal(),
         )
-        .build();
+      ];
 
-      let preparedTransaction =
-        await this.server.prepareTransaction(transaction);
-      preparedTransaction.sign(this.sourceKeypair);
-      const response = await this.server.sendTransaction(preparedTransaction);
+      // Se llama a la funcion que ejecuta la creacion de la transaccion.
+      const transaction = buildTransaction( account, operations );
 
-      if (response.status === "PENDING") {
-        let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
-
-        do {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-          getResponse = await this.server.getTransaction(response.hash);
-        } while (getResponse.status === "NOT_FOUND");
-
-        if (getResponse.status === "SUCCESS") {
-          const result = this.parseBalanceByAddressData(getResponse);
-          return { allowance: result };
-        } else {
-          return getResponse;
+      // Firma y envia la transaccion al smart contract.
+      return await signAndSendTransaction(
+        transaction, 
+        this.sourceKeypair, 
+        this.server, 
+        true,
+        (response) => {
+          const result = parseBalanceByAddressData(response as StellarSDK.rpc.Api.GetSuccessfulTransactionResponse)
+          return { allownce: result }
         }
-      } else {
-        throw new Error(
-          `Transaction submission failed: ${JSON.stringify(response.errorResult)}`,
-        );
-      }
+      );
+      
     } catch (error) {
       console.error("Error fetching projects by client:", error);
       throw error;

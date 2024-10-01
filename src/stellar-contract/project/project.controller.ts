@@ -13,18 +13,18 @@ import { ProjectService } from "./project.service";
 export class ProjectController {
   constructor(private readonly projectService: ProjectService) {}
 
-  @Post("initialize-escrow")
+  @Post("create-engagement")
   async createProject(
-    @Body("freelancer") freelancer: string,
+    @Body("serviceProvider") serviceProvider: string,
     @Body("prices") prices: string[],
-    @Body("user") user: string,
+    @Body("client") client: string,
     @Body("secretKey") secretKey: string,
   ): Promise<number> {
     try {
-      const result = await this.projectService.initializeEscrow(
-        freelancer,
+      const result = await this.projectService.createEngagement(
+        serviceProvider,
         prices,
-        user,
+        client,
         secretKey,
       );
       return result;
@@ -36,16 +36,16 @@ export class ProjectController {
     }
   }
 
-  @Post("fund-party")
+  @Post("fund-escrow")
   async fundObjective(
-    @Body("escrowId") escrowId: string,
-    @Body("partyId") partyId: string,
+    @Body("engamentId") escrowId: string,
+    @Body("escrowId") partyId: string,
     @Body("spender") spender: string,
     @Body("from") from: string,
     @Body("secretKey") secretKey: string,
   ): Promise<any> {
     try {
-      const result = await this.projectService.fundParty(
+      const result = await this.projectService.fundEscrow(
         escrowId,
         partyId,
         spender,
