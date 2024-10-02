@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import * as StellarSDK from "@stellar/stellar-sdk";
 import {
   adjustPricesToMicroUSDC,
-  parseEscrowData,
+  parseEngagementData,
   parseBalanceByAddressData,
 } from "src/utils/parse.utils";
 import {
@@ -75,7 +75,7 @@ export class EngagementService {
   async fundEscrow(
     engamentId: string,
     escrowId: string,
-    owner: string,
+    client: string,
     secretKey: string,
   ): Promise<any> {
     try {
@@ -98,10 +98,10 @@ export class EngagementService {
 
       const operations = [
         this.contract.call(
-          "fund_objective",
+          "fund_escrow",
           contractIdBytes,
           objectiveIdU128,
-          StellarSDK.Address.fromString(owner).toScVal(),
+          StellarSDK.Address.fromString(client).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
           StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
         ),
@@ -131,21 +131,20 @@ export class EngagementService {
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
-
+      
       const contractIdBuffer = StellarSDK.StrKey.decodeContract(
         this.trustlessContractId,
       );
       if (contractIdBuffer.length !== 32) {
         throw new Error("Invalid contract ID: Must be 32 bytes in length");
       }
-
+      
       const limit = 4;
       const hostFunction =
         StellarSDK.xdr.HostFunction.hostFunctionTypeInvokeContract(
           new StellarSDK.xdr.InvokeContractArgs({
-            contractAddress:
-              StellarSDK.xdr.ScAddress.scAddressTypeContract(contractIdBuffer),
-            functionName: "get_projects_by_spender",
+            contractAddress: StellarSDK.xdr.ScAddress.scAddressTypeContract(contractIdBuffer),
+            functionName: "get_engagements_by_client",
             args: [
               StellarSDK.Address.fromString(address).toScVal(),
               StellarSDK.xdr.ScVal.scvU32(Number(page)),
@@ -168,7 +167,7 @@ export class EngagementService {
         this.server,
         true,
         (response) =>
-          parseEscrowData(
+          parseEngagementData(
             response as StellarSDK.rpc.Api.GetSuccessfulTransactionResponse,
           ),
       );

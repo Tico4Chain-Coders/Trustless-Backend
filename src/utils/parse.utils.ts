@@ -11,7 +11,7 @@ export function microUSDToDecimal(microUSDC: bigint | number): number {
   return Number(microUSDC) / 1e6;
 }
 
-export function parseEscrowData(
+export function parseEngagementData(
   response: StellarSDK.rpc.Api.GetSuccessfulTransactionResponse,
 ): any {
   try {
@@ -29,25 +29,25 @@ export function parseEscrowData(
     const scVal = lastEvent.body().value();
     const contractEventV0 = scVal.data();
 
-    const escrows = StellarSDK.scValToNative(contractEventV0);
-    return escrows[1].map((escrow: any) => ({
-      escrow_id: Buffer.from(escrow.escrow_id).toString("hex"),
-      spender: escrow.spender,
-      from: escrow.from,
-      parties_count: Number(escrow.parties_count),
-      parties: Object.values(escrow.parties).map((party: any) => ({
-        completed: party.completed,
-        half_paid: microUSDToDecimal(Number(party.half_paid)),
-        price: microUSDToDecimal(Number(party.price)),
+    const engagements = StellarSDK.scValToNative(contractEventV0);
+    return engagements[1].map((engagement: any) => ({
+      engagement_id: Buffer.from(engagement.engagement_id).toString("hex"),
+      spender: engagement.client,
+      from: engagement.service_provider,
+      escrows_count: Number(engagement.escrows_count),
+      escrows: Object.values(engagement.escrows).map((escrow: any) => ({
+        completed: escrow.completed,
+        amount_paid: microUSDToDecimal(Number(escrow.amount_paid)),
+        price: microUSDToDecimal(Number(escrow.price)),
       })),
-      completed_parties: Number(escrow.completed_parties),
-      earned_amount: Number(escrow.earned_amount),
-      contract_balance: Number(escrow.contract_balance),
-      cancelled: escrow.cancelled,
-      completed: escrow.completed,
+      completed_escrows: Number(engagement.completed_escrows),
+      earned_amount: Number(engagement.earned_amount),
+      contract_balance: Number(engagement.contract_balance),
+      cancelled: engagement.cancelled,
+      completed: engagement.completed,
     }));
   } catch (error) {
-    console.error("Error parsing escrow data:", error);
+    console.error("Error parsing engagements data:", error);
     throw error;
   }
 }

@@ -37,16 +37,16 @@ export class EngagenmentController {
 
   @Post("fund-escrow")
   async fundObjective(
-    @Body("engamentId") escrowId: string,
-    @Body("escrowId") partyId: string,
-    @Body("owner") owner: string,
+    @Body("engamentId") engamentId: string,
+    @Body("escrowId") escrowId: string,
+    @Body("client") client: string,
     @Body("secretKey") secretKey: string,
   ): Promise<any> {
     try {
       const result = await this.engagementService.fundEscrow(
+        engamentId,
         escrowId,
-        partyId,
-        owner,
+        client,
         secretKey,
       );
       return result;
