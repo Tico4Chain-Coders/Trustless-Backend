@@ -131,19 +131,20 @@ export class EngagementService {
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
-      
+
       const contractIdBuffer = StellarSDK.StrKey.decodeContract(
         this.trustlessContractId,
       );
       if (contractIdBuffer.length !== 32) {
         throw new Error("Invalid contract ID: Must be 32 bytes in length");
       }
-      
+
       const limit = 4;
       const hostFunction =
         StellarSDK.xdr.HostFunction.hostFunctionTypeInvokeContract(
           new StellarSDK.xdr.InvokeContractArgs({
-            contractAddress: StellarSDK.xdr.ScAddress.scAddressTypeContract(contractIdBuffer),
+            contractAddress:
+              StellarSDK.xdr.ScAddress.scAddressTypeContract(contractIdBuffer),
             functionName: "get_engagements_by_client",
             args: [
               StellarSDK.Address.fromString(address).toScVal(),
