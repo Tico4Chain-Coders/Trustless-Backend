@@ -13,7 +13,7 @@ export class EngagenmentController {
   constructor(private readonly engagementService: EngagementService) {}
 
   @Post("create-engagement")
-  async createProject(
+  async createEngagement(
     @Body("serviceProvider") serviceProvider: string,
     @Body("prices") prices: string[],
     @Body("client") client: string,
@@ -59,18 +59,18 @@ export class EngagenmentController {
   }
 
   @Get("get-engagements-by-address")
-  async getProjectsByClient(
+  async getEngagementsByClient(
     @Body("address") address: string,
     @Body("page") page: number,
     @Body("secretKey") secretKey: string,
   ) {
     try {
-      const projects = await this.engagementService.getEngagementsByAddress(
+      const engagements = await this.engagementService.getEngagementsByAddress(
         address,
         page,
         secretKey,
       );
-      return projects;
+      return engagements;
     } catch (error) {
       throw new HttpException(
         "Failed to fetch engagements by address",
@@ -85,11 +85,11 @@ export class EngagenmentController {
     @Body("secretKey") secretKey: string,
   ) {
     try {
-      const projects = await this.engagementService.getBalance(
+      const engagements = await this.engagementService.getBalance(
         address,
         secretKey,
       );
-      return projects;
+      return engagements;
     } catch (error) {
       throw new HttpException(
         "A problem occurred when obtaining the address balance.",
@@ -105,12 +105,12 @@ export class EngagenmentController {
     @Body("secretKey") secretKey: string,
   ) {
     try {
-      const projects = await this.engagementService.getAllowance(
+      const engagement = await this.engagementService.getAllowance(
         from,
         spender,
         secretKey,
       );
-      return projects;
+      return engagement;
     } catch (error) {
       throw new HttpException(
         "There was a problem obtaining the address allowance.",
@@ -122,9 +122,9 @@ export class EngagenmentController {
   @Post("set-trustline")
   async setTrustline(@Body("sourceSecretKey") sourceSecretKey: string) {
     try {
-      const projects =
+      const engagements =
         await this.engagementService.establishTrustline(sourceSecretKey);
-      return projects;
+      return engagements;
     } catch (error) {
       throw new HttpException(
         "A problem occurred when defining the trustline.",
@@ -141,13 +141,13 @@ export class EngagenmentController {
     @Body("sourceSecretKey") sourceSecretKey: string,
   ) {
     try {
-      const projects = await this.engagementService.approve_amount(
+      const engagement = await this.engagementService.approve_amount(
         from,
         spender,
         amount,
         sourceSecretKey,
       );
-      return projects;
+      return engagement;
     } catch (error) {
       throw new HttpException(
         "There was a problem in approving the amounts between the addresses.",
