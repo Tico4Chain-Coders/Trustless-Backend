@@ -5,11 +5,10 @@ import {
   HttpException,
   HttpStatus,
   Post,
-  Query,
 } from "@nestjs/common";
 import { EngagementService } from "./engagement.service";
 
-@Controller("project")
+@Controller("engagement")
 export class EngagenmentController {
   constructor(private readonly engagementService: EngagementService) {}
 
@@ -61,9 +60,9 @@ export class EngagenmentController {
 
   @Get("get-engagements-by-address")
   async getProjectsByClient(
-    @Query("address") address: string,
-    @Query("page") page: number,
-    @Query("secretKey") secretKey: string,
+    @Body("address") address: string,
+    @Body("page") page: number,
+    @Body("secretKey") secretKey: string,
   ) {
     try {
       const projects = await this.engagementService.getEngagementsByAddress(
@@ -82,8 +81,8 @@ export class EngagenmentController {
 
   @Get("get-balance")
   async getBalance(
-    @Query("address") address: string,
-    @Query("secretKey") secretKey: string,
+    @Body("address") address: string,
+    @Body("secretKey") secretKey: string,
   ) {
     try {
       const projects = await this.engagementService.getBalance(address, secretKey);
@@ -98,9 +97,9 @@ export class EngagenmentController {
 
   @Get("get-allowance")
   async getAllowance(
-    @Query("from") from: string,
-    @Query("spender") spender: string,
-    @Query("secretKey") secretKey: string,
+    @Body("from") from: string,
+    @Body("spender") spender: string,
+    @Body("secretKey") secretKey: string,
   ) {
     try {
       const projects = await this.engagementService.getAllowance(
@@ -118,7 +117,7 @@ export class EngagenmentController {
   }
 
   @Post("set-trustline")
-  async setTrustline(@Query("sourceSecretKey") sourceSecretKey: string) {
+  async setTrustline(@Body("sourceSecretKey") sourceSecretKey: string) {
     try {
       const projects =
         await this.engagementService.establishTrustline(sourceSecretKey);
@@ -133,10 +132,10 @@ export class EngagenmentController {
 
   @Post("approve")
   async approve(
-    @Query("from") from: string,
-    @Query("spender") spender: string,
-    @Query("amount") amount: string,
-    @Query("sourceSecretKey") sourceSecretKey: string,
+    @Body("from") from: string,
+    @Body("spender") spender: string,
+    @Body("amount") amount: string,
+    @Body("sourceSecretKey") sourceSecretKey: string,
   ) {
     try {
       const projects = await this.engagementService.approve_amount(
