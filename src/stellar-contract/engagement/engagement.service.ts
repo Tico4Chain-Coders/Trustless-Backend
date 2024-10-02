@@ -235,7 +235,10 @@ export class EngagementService {
         },
       );
     } catch (error) {
-      console.error("An error occurred while trying to obtain the address balance:", error);
+      console.error(
+        "An error occurred while trying to obtain the address balance:",
+        error,
+      );
       throw error;
     }
   }
@@ -280,7 +283,10 @@ export class EngagementService {
         true,
       );
     } catch (error) {
-      console.error("An error occurred when trying to approve amounts between addresses:", error);
+      console.error(
+        "An error occurred when trying to approve amounts between addresses:",
+        error,
+      );
       throw error;
     }
   }
@@ -320,7 +326,10 @@ export class EngagementService {
         },
       );
     } catch (error) {
-      console.error("An error occurred while trying to obtain the allowance of an address:", error);
+      console.error(
+        "An error occurred while trying to obtain the allowance of an address:",
+        error,
+      );
       throw error;
     }
   }

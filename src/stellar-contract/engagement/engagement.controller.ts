@@ -85,7 +85,10 @@ export class EngagenmentController {
     @Body("secretKey") secretKey: string,
   ) {
     try {
-      const projects = await this.engagementService.getBalance(address, secretKey);
+      const projects = await this.engagementService.getBalance(
+        address,
+        secretKey,
+      );
       return projects;
     } catch (error) {
       throw new HttpException(
