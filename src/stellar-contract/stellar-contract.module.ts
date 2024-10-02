@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
-import { ProjectModule } from "./project/project.module";
+import { EngagementModule } from "./engagement/engagement.module";
 import { UserModule } from "./user/user.module";
 
 @Module({
-  imports: [ProjectModule, UserModule],
+  imports: [EngagementModule, UserModule],
 })
 export class StellarContractModule {}

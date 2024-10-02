@@ -2,7 +2,6 @@ import { Injectable } from "@nestjs/common";
 import * as StellarSDK from "@stellar/stellar-sdk";
 import {
   adjustPricesToMicroUSDC,
-  microUSDToDecimal,
   parseEscrowData,
   parseBalanceByAddressData,
 } from "src/utils/parse.utils";
@@ -13,7 +12,7 @@ import {
 import { u128ToBytes } from "src/utils/u128ToBytes";
 
 @Injectable()
-export class ProjectService {
+export class EngagementService {
   private server: StellarSDK.SorobanRpc.Server;
   private contract: StellarSDK.Contract;
   private sourceKeypair: StellarSDK.Keypair;
@@ -44,14 +43,12 @@ export class ProjectService {
         this.sourceKeypair.publicKey(),
       );
 
-      // Funcion de src/utils/price, que ajusta el precio.
       const adjustedPrices = adjustPricesToMicroUSDC(prices);
 
       const scValPrices = StellarSDK.nativeToScVal(adjustedPrices, {
         type: "u128",
       });
 
-      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
       const operations = [
         this.contract.call(
           "initialize_escrow",
@@ -61,10 +58,8 @@ export class ProjectService {
         ),
       ];
 
-      // Se llama a la funcion que ejecuta la creacion de la transaccion.
       const transaction = buildTransaction(account, operations);
 
-      // Firma y envia la transaccion al smart contract.
       return await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
@@ -72,7 +67,7 @@ export class ProjectService {
         true,
       );
     } catch (error) {
-      console.error("Error calling create_project:", error);
+      console.error("Error calling create_engagement:", error);
       throw error;
     }
   }
@@ -80,8 +75,7 @@ export class ProjectService {
   async fundEscrow(
     engamentId: string,
     escrowId: string,
-    spender: string,
-    from: string,
+    owner: string,
     secretKey: string,
   ): Promise<any> {
     try {
@@ -102,22 +96,19 @@ export class ProjectService {
         new StellarSDK.xdr.UInt128Parts({ hi: high, lo: low }),
       );
 
-      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
       const operations = [
         this.contract.call(
           "fund_objective",
           contractIdBytes,
           objectiveIdU128,
-          StellarSDK.Address.fromString(spender).toScVal(),
+          StellarSDK.Address.fromString(owner).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-          StellarSDK.Address.fromString(from).toScVal(),
+          StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
         ),
       ];
 
-      // Se llama a la funcion que ejecuta la creacion de la transaccion.
       const transaction = buildTransaction(account, operations);
 
-      // Firma y envia la transaccion al smart contract.
       return await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
@@ -125,13 +116,13 @@ export class ProjectService {
         true,
       );
     } catch (error) {
-      console.error("Error calling fund_objective:", error);
+      console.error("Error calling fund_escrow:", error);
       throw error;
     }
   }
 
-  async getEscrowsBySpender(
-    spenderAddress: string,
+  async getEngagementsByAddress(
+    address: string,
     page: number,
     secretKey: string,
   ): Promise<any> {
@@ -156,7 +147,7 @@ export class ProjectService {
               StellarSDK.xdr.ScAddress.scAddressTypeContract(contractIdBuffer),
             functionName: "get_projects_by_spender",
             args: [
-              StellarSDK.Address.fromString(spenderAddress).toScVal(),
+              StellarSDK.Address.fromString(address).toScVal(),
               StellarSDK.xdr.ScVal.scvU32(Number(page)),
               StellarSDK.xdr.ScVal.scvU32(limit),
             ],
@@ -171,7 +162,6 @@ export class ProjectService {
 
       const transaction = buildTransaction(account, operations);
 
-      // Firma y envia la transaccion al smart contract.
       return await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
@@ -183,7 +173,7 @@ export class ProjectService {
           ),
       );
     } catch (error) {
-      console.error("Error fetching projects by client:", error);
+      console.error("Error fetching engagements by client:", error);
       throw error;
     }
   }
@@ -197,12 +187,10 @@ export class ProjectService {
 
       const usdcAsset = new StellarSDK.Asset("USDC", this.usdcTokenPublic);
 
-      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
       const operations = [
         StellarSDK.Operation.changeTrust({ asset: usdcAsset }),
       ];
 
-      // Se llama a la funcion que ejecuta la creacion de la transaccion.
       const transaction = buildTransaction(account, operations);
 
       return await signAndSendTransaction(
@@ -224,7 +212,6 @@ export class ProjectService {
         this.sourceKeypair.publicKey(),
       );
 
-      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
       const operations = [
         this.contract.call(
           "get_balance",
@@ -233,10 +220,8 @@ export class ProjectService {
         ),
       ];
 
-      // Se llama a la funcion que ejecuta la creacion de la transaccion.
       const transaction = buildTransaction(account, operations);
 
-      // Firma y envia la transaccion al smart contract.
       return await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
@@ -250,7 +235,7 @@ export class ProjectService {
         },
       );
     } catch (error) {
-      console.error("Error fetching projects by client:", error);
+      console.error("An error occurred while trying to obtain the address balance:", error);
       throw error;
     }
   }
@@ -271,7 +256,6 @@ export class ProjectService {
       const high = microAmount >> 64n;
       const low = microAmount & BigInt("0xFFFFFFFFFFFFFFFF");
 
-      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
       const operations = [
         this.contract.call(
           "approve_amounts",
@@ -287,10 +271,8 @@ export class ProjectService {
         ),
       ];
 
-      // Se llama a la funcion que ejecuta la creacion de la transaccion.
       const transaction = buildTransaction(account, operations);
 
-      // Firma y envia la transaccion al smart contract.
       return await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
@@ -298,7 +280,7 @@ export class ProjectService {
         true,
       );
     } catch (error) {
-      console.error("Error fetching projects by client:", error);
+      console.error("An error occurred when trying to approve amounts between addresses:", error);
       throw error;
     }
   }
@@ -314,7 +296,6 @@ export class ProjectService {
         this.sourceKeypair.publicKey(),
       );
 
-      // Aqui se pasan los parametros junto con el nombre de la funcion para el smart contract.
       const operations = [
         this.contract.call(
           "get_allowance",
@@ -324,10 +305,8 @@ export class ProjectService {
         ),
       ];
 
-      // Se llama a la funcion que ejecuta la creacion de la transaccion.
       const transaction = buildTransaction(account, operations);
 
-      // Firma y envia la transaccion al smart contract.
       return await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
@@ -341,7 +320,7 @@ export class ProjectService {
         },
       );
     } catch (error) {
-      console.error("Error fetching projects by client:", error);
+      console.error("An error occurred while trying to obtain the allowance of an address:", error);
       throw error;
     }
   }

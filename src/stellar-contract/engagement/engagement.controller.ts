@@ -7,11 +7,11 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { ProjectService } from "./project.service";
+import { EngagementService } from "./engagement.service";
 
 @Controller("project")
-export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+export class EngagenmentController {
+  constructor(private readonly engagementService: EngagementService) {}
 
   @Post("create-engagement")
   async createProject(
@@ -21,7 +21,7 @@ export class ProjectController {
     @Body("secretKey") secretKey: string,
   ): Promise<number> {
     try {
-      const result = await this.projectService.createEngagement(
+      const result = await this.engagementService.createEngagement(
         serviceProvider,
         prices,
         client,
@@ -40,43 +40,41 @@ export class ProjectController {
   async fundObjective(
     @Body("engamentId") escrowId: string,
     @Body("escrowId") partyId: string,
-    @Body("spender") spender: string,
-    @Body("from") from: string,
+    @Body("owner") owner: string,
     @Body("secretKey") secretKey: string,
   ): Promise<any> {
     try {
-      const result = await this.projectService.fundEscrow(
+      const result = await this.engagementService.fundEscrow(
         escrowId,
         partyId,
-        spender,
-        from,
+        owner,
         secretKey,
       );
       return result;
     } catch (error) {
       throw new HttpException(
-        "Failed to fund objective",
+        "Failed to fund escrow",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
-  @Get("get-escrows-by-client")
+  @Get("get-engagements-by-address")
   async getProjectsByClient(
-    @Query("spenderAddress") spenderAddress: string,
+    @Query("address") address: string,
     @Query("page") page: number,
     @Query("secretKey") secretKey: string,
   ) {
     try {
-      const projects = await this.projectService.getEscrowsBySpender(
-        spenderAddress,
+      const projects = await this.engagementService.getEngagementsByAddress(
+        address,
         page,
         secretKey,
       );
       return projects;
     } catch (error) {
       throw new HttpException(
-        "Failed to fetch projects by client",
+        "Failed to fetch engagements by address",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -88,11 +86,11 @@ export class ProjectController {
     @Query("secretKey") secretKey: string,
   ) {
     try {
-      const projects = await this.projectService.getBalance(address, secretKey);
+      const projects = await this.engagementService.getBalance(address, secretKey);
       return projects;
     } catch (error) {
       throw new HttpException(
-        "Failed to fetch projects by client",
+        "A problem occurred when obtaining the address balance.",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -105,7 +103,7 @@ export class ProjectController {
     @Query("secretKey") secretKey: string,
   ) {
     try {
-      const projects = await this.projectService.getAllowance(
+      const projects = await this.engagementService.getAllowance(
         from,
         spender,
         secretKey,
@@ -113,7 +111,7 @@ export class ProjectController {
       return projects;
     } catch (error) {
       throw new HttpException(
-        "Failed to fetch projects by client",
+        "There was a problem obtaining the address allowance.",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -123,11 +121,11 @@ export class ProjectController {
   async setTrustline(@Query("sourceSecretKey") sourceSecretKey: string) {
     try {
       const projects =
-        await this.projectService.establishTrustline(sourceSecretKey);
+        await this.engagementService.establishTrustline(sourceSecretKey);
       return projects;
     } catch (error) {
       throw new HttpException(
-        "Failed to fetch projects by client",
+        "A problem occurred when defining the trustline.",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -141,7 +139,7 @@ export class ProjectController {
     @Query("sourceSecretKey") sourceSecretKey: string,
   ) {
     try {
-      const projects = await this.projectService.approve_amount(
+      const projects = await this.engagementService.approve_amount(
         from,
         spender,
         amount,
@@ -150,7 +148,7 @@ export class ProjectController {
       return projects;
     } catch (error) {
       throw new HttpException(
-        "Failed to fetch projects by client",
+        "There was a problem in approving the amounts between the addresses.",
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
