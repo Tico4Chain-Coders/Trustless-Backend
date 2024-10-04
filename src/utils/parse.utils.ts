@@ -1,14 +1,12 @@
 import * as StellarSDK from "@stellar/stellar-sdk";
 
-export function adjustPricesToMicroUSDC(prices: string[]): string[] {
-  return prices.map((price) => {
-    const microUSDC = BigInt(Math.round(parseFloat(price) * 1e6));
-    return microUSDC.toString();
-  });
+export function adjustPricesToMicroUSDC(price: string): string {
+  const microUSDC = BigInt(Math.round(parseFloat(price) * 1e7));
+  return microUSDC.toString();
 }
 
 export function microUSDToDecimal(microUSDC: bigint | number): number {
-  return Number(microUSDC) / 1e6;
+  return Number(microUSDC) / 1e7;
 }
 
 export function parseEngagementData(
@@ -30,22 +28,18 @@ export function parseEngagementData(
     const contractEventV0 = scVal.data();
 
     const engagements = StellarSDK.scValToNative(contractEventV0);
-    return engagements[1].map((engagement: any) => ({
-      engagement_id: Buffer.from(engagement.engagement_id).toString("hex"),
-      spender: engagement.client,
-      from: engagement.service_provider,
-      escrows_count: Number(engagement.escrows_count),
-      escrows: Object.values(engagement.escrows).map((escrow: any) => ({
-        completed: escrow.completed,
-        amount_paid: microUSDToDecimal(Number(escrow.amount_paid)),
-        price: microUSDToDecimal(Number(escrow.price)),
-      })),
-      completed_escrows: Number(engagement.completed_escrows),
-      earned_amount: Number(engagement.earned_amount),
-      contract_balance: Number(engagement.contract_balance),
-      cancelled: engagement.cancelled,
-      completed: engagement.completed,
-    }));
+    const { engagement_id, description, issuer, signer, service_provider, amount, balance, cancelled, completed } = engagements[1]
+    return {
+      engagement_id: Buffer.from(engagement_id).toString("hex"),
+      description,
+      issuer,
+      signer,
+      service_provider,
+      amount: microUSDToDecimal(Number(amount)),
+      balance: microUSDToDecimal(Number(balance)),
+      cancelled,
+      completed,
+    };
   } catch (error) {
     console.error("Error parsing engagements data:", error);
     throw error;
