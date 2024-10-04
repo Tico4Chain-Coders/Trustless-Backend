@@ -12,19 +12,23 @@ import { EngagementService } from "./engagement.service";
 export class EngagenmentController {
   constructor(private readonly engagementService: EngagementService) {}
 
-  @Post("create-engagement")
+  @Post("initialize-escrow")
   async createEngagement(
+    @Body("engagementId") engagementId: string,
+    @Body("description") description: string,
+    @Body("issuer") issuer: string,
     @Body("serviceProvider") serviceProvider: string,
-    @Body("prices") prices: string[],
-    @Body("client") client: string,
-    @Body("secretKey") secretKey: string,
+    @Body("amount") amount: string,
+    @Body("signer") signer: string,
   ): Promise<number> {
     try {
-      const result = await this.engagementService.createEngagement(
+      const result = await this.engagementService.initializeEscrow(
+        engagementId,
+        description,
+        issuer,
         serviceProvider,
-        prices,
-        client,
-        secretKey,
+        amount,
+        signer,
       );
       return result;
     } catch (error) {
@@ -36,18 +40,14 @@ export class EngagenmentController {
   }
 
   @Post("fund-escrow")
-  async fundObjective(
+  async fundEscrow(
     @Body("engamentId") engamentId: string,
-    @Body("escrowId") escrowId: string,
-    @Body("client") client: string,
-    @Body("secretKey") secretKey: string,
+    @Body("signer") signer: string,
   ): Promise<any> {
     try {
       const result = await this.engagementService.fundEscrow(
         engamentId,
-        escrowId,
-        client,
-        secretKey,
+        signer,
       );
       return result;
     } catch (error) {
@@ -58,17 +58,32 @@ export class EngagenmentController {
     }
   }
 
-  @Get("get-engagements-by-address")
+  @Post("complete-escrow")
+  async completeEscrow(
+    @Body("engamentId") engamentId: string,
+    @Body("signer") signer: string,
+  ): Promise<any> {
+    try {
+      const result = await this.engagementService.completeEscrow(
+        engamentId,
+        signer,
+      );
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to complete escrow",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get("get-escrow-by-engagement-id")
   async getEngagementsByClient(
-    @Body("address") address: string,
-    @Body("page") page: number,
-    @Body("secretKey") secretKey: string,
+    @Body("engagementId") engagementId: string,
   ) {
     try {
-      const engagements = await this.engagementService.getEngagementsByAddress(
-        address,
-        page,
-        secretKey,
+      const engagements = await this.engagementService.getEscrowByEngagementID(
+        engagementId,
       );
       return engagements;
     } catch (error) {

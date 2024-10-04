@@ -9,7 +9,6 @@ import {
   buildTransaction,
   signAndSendTransaction,
 } from "src/utils/transaction.utils";
-import { u128ToBytes } from "src/utils/u128ToBytes";
 
 @Injectable()
 export class EngagementService {
@@ -31,30 +30,36 @@ export class EngagementService {
     this.contract = new StellarSDK.Contract(process.env.TRUSTLESS_CONTRACT_ID);
   }
 
-  async createEngagement(
+  async initializeEscrow(
+    engagementId: string,
+    description: string,
+    issuer: string,
     serviceProvider: string,
-    prices: string[],
-    client: string,
-    secretKey: string,
+    amount: string,
+    signer: string,
   ): Promise<number> {
     try {
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET // revisar
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret("SCMXDC4VK2ROZMUOPI7MZ7JE2PEQIVGQCPTJTM5FB3HW2QTRN2FZWZ3N");
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
 
-      const adjustedPrices = adjustPricesToMicroUSDC(prices);
+      const adjustedPrice = adjustPricesToMicroUSDC(amount);
 
-      const scValPrices = StellarSDK.nativeToScVal(adjustedPrices, {
+      const scValPrice = StellarSDK.nativeToScVal(adjustedPrice, {
         type: "u128",
       });
 
       const operations = [
         this.contract.call(
           "initialize_escrow",
+          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.nativeToScVal(description, { type: "string", }),
+          StellarSDK.Address.fromString(issuer).toScVal(),
           StellarSDK.Address.fromString(serviceProvider).toScVal(),
-          scValPrices,
-          StellarSDK.Address.fromString(client).toScVal(),
+          scValPrice,
+          StellarSDK.Address.fromString(signer).toScVal(),
         ),
       ];
 
@@ -67,41 +72,28 @@ export class EngagementService {
         true,
       );
     } catch (error) {
-      console.error("Error calling create_engagement:", error);
+      console.error("Error calling create_engagement:", JSON.stringify(error));
       throw error;
     }
   }
 
   async fundEscrow(
-    engamentId: string,
-    escrowId: string,
-    client: string,
-    secretKey: string,
+    engagementId: string,
+    signer: string,
   ): Promise<any> {
     try {
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      console.log({ walletApiSecretKey })
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret("SCMXDC4VK2ROZMUOPI7MZ7JE2PEQIVGQCPTJTM5FB3HW2QTRN2FZWZ3N");
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
-      );
-
-      const contractIdBytes = u128ToBytes(engamentId);
-      const objectiveIdBigInt = BigInt(escrowId);
-      const high = StellarSDK.xdr.Uint64.fromString(
-        (objectiveIdBigInt >> 64n).toString(),
-      );
-      const low = StellarSDK.xdr.Uint64.fromString(
-        (objectiveIdBigInt & BigInt("0xFFFFFFFFFFFFFFFF")).toString(),
-      );
-      const objectiveIdU128 = StellarSDK.xdr.ScVal.scvU128(
-        new StellarSDK.xdr.UInt128Parts({ hi: high, lo: low }),
       );
 
       const operations = [
         this.contract.call(
           "fund_escrow",
-          contractIdBytes,
-          objectiveIdU128,
-          StellarSDK.Address.fromString(client).toScVal(),
+          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.Address.fromString(signer).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
           StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
         ),
@@ -121,43 +113,56 @@ export class EngagementService {
     }
   }
 
-  async getEngagementsByAddress(
-    address: string,
-    page: number,
-    secretKey: string,
+  async completeEscrow(
+    engagementId: string,
+    signer: string,
   ): Promise<any> {
     try {
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret("SCMXDC4VK2ROZMUOPI7MZ7JE2PEQIVGQCPTJTM5FB3HW2QTRN2FZWZ3N");
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
 
-      const contractIdBuffer = StellarSDK.StrKey.decodeContract(
-        this.trustlessContractId,
-      );
-      if (contractIdBuffer.length !== 32) {
-        throw new Error("Invalid contract ID: Must be 32 bytes in length");
-      }
+      const operations = [
+        this.contract.call(
+          "complete_escrow",
+          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.Address.fromString(signer).toScVal(),
+          StellarSDK.Address.fromString(this.usdcToken).toScVal(),
+          StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
+        ),
+      ];
 
-      const limit = 4;
-      const hostFunction =
-        StellarSDK.xdr.HostFunction.hostFunctionTypeInvokeContract(
-          new StellarSDK.xdr.InvokeContractArgs({
-            contractAddress:
-              StellarSDK.xdr.ScAddress.scAddressTypeContract(contractIdBuffer),
-            functionName: "get_engagements_by_client",
-            args: [
-              StellarSDK.Address.fromString(address).toScVal(),
-              StellarSDK.xdr.ScVal.scvU32(Number(page)),
-              StellarSDK.xdr.ScVal.scvU32(limit),
-            ],
-          }),
-        );
+      const transaction = buildTransaction(account, operations);
+
+      return await signAndSendTransaction(
+        transaction,
+        this.sourceKeypair,
+        this.server,
+        true,
+      );
+    } catch (error) {
+      console.error("Error calling fund_escrow:", error);
+      throw error;
+    }
+  }
+
+  async getEscrowByEngagementID(
+    engagementId: string,
+  ): Promise<any> {
+    try {
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret("SCMXDC4VK2ROZMUOPI7MZ7JE2PEQIVGQCPTJTM5FB3HW2QTRN2FZWZ3N");
+      const account = await this.server.getAccount(
+        this.sourceKeypair.publicKey(),
+      );
 
       const operations = [
-        StellarSDK.Operation.invokeHostFunction({
-          func: hostFunction,
-        }),
+        this.contract.call(
+          "get_escrow_by_id",
+          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+        ),
       ];
 
       const transaction = buildTransaction(account, operations);
