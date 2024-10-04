@@ -55,7 +55,7 @@ export async function signAndSendTransaction(
         return getResponse; // Devuelve el resultado sin procesar si no hay callback
       }
     } else {
-      throw new Error(`Transaction failed: ${getResponse.resultXdr}`);
+      throw new Error(`Transaction failed: ${JSON.stringify(getResponse.resultXdr)}`);
     }
   } else {
     throw new Error(`Transaction submission failed: ${response.errorResult}`);
