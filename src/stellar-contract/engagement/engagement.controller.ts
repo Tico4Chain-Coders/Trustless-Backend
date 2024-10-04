@@ -43,11 +43,13 @@ export class EngagenmentController {
   async fundEscrow(
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
+    @Body("secretKey") secretKey: string,
   ): Promise<any> {
     try {
       const result = await this.engagementService.fundEscrow(
         engamentId,
         signer,
+        secretKey
       );
       return result;
     } catch (error) {
@@ -62,11 +64,13 @@ export class EngagenmentController {
   async completeEscrow(
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
+    @Body("secretKey") secretKey: string,
   ): Promise<any> {
     try {
       const result = await this.engagementService.completeEscrow(
         engamentId,
         signer,
+        secretKey
       );
       return result;
     } catch (error) {
@@ -97,12 +101,10 @@ export class EngagenmentController {
   @Get("get-balance")
   async getBalance(
     @Body("address") address: string,
-    @Body("secretKey") secretKey: string,
   ) {
     try {
       const engagements = await this.engagementService.getBalance(
         address,
-        secretKey,
       );
       return engagements;
     } catch (error) {
@@ -117,13 +119,11 @@ export class EngagenmentController {
   async getAllowance(
     @Body("from") from: string,
     @Body("spender") spender: string,
-    @Body("secretKey") secretKey: string,
   ) {
     try {
       const engagement = await this.engagementService.getAllowance(
         from,
         spender,
-        secretKey,
       );
       return engagement;
     } catch (error) {
@@ -153,14 +153,12 @@ export class EngagenmentController {
     @Body("from") from: string,
     @Body("spender") spender: string,
     @Body("amount") amount: string,
-    @Body("sourceSecretKey") sourceSecretKey: string,
   ) {
     try {
       const engagement = await this.engagementService.approve_amount(
         from,
         spender,
         amount,
-        sourceSecretKey,
       );
       return engagement;
     } catch (error) {

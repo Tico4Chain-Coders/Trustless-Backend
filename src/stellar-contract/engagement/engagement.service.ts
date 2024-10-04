@@ -39,8 +39,8 @@ export class EngagementService {
     signer: string,
   ): Promise<number> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET // revisar
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret("SCMXDC4VK2ROZMUOPI7MZ7JE2PEQIVGQCPTJTM5FB3HW2QTRN2FZWZ3N");
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
@@ -64,6 +64,7 @@ export class EngagementService {
       ];
 
       const transaction = buildTransaction(account, operations);
+      console.log({ transaction })
 
       return await signAndSendTransaction(
         transaction,
@@ -80,11 +81,10 @@ export class EngagementService {
   async fundEscrow(
     engagementId: string,
     signer: string,
+    secretKey: string
   ): Promise<any> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
-      console.log({ walletApiSecretKey })
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret("SCMXDC4VK2ROZMUOPI7MZ7JE2PEQIVGQCPTJTM5FB3HW2QTRN2FZWZ3N");
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
@@ -116,10 +116,10 @@ export class EngagementService {
   async completeEscrow(
     engagementId: string,
     signer: string,
+    secretKey: string
   ): Promise<any> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret("SCMXDC4VK2ROZMUOPI7MZ7JE2PEQIVGQCPTJTM5FB3HW2QTRN2FZWZ3N");
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
@@ -153,7 +153,7 @@ export class EngagementService {
   ): Promise<any> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret("SCMXDC4VK2ROZMUOPI7MZ7JE2PEQIVGQCPTJTM5FB3HW2QTRN2FZWZ3N");
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
@@ -210,9 +210,10 @@ export class EngagementService {
     }
   }
 
-  async getBalance(address: string, secretKey: string): Promise<any> {
+  async getBalance(address: string): Promise<any> {
     try {
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
@@ -252,10 +253,10 @@ export class EngagementService {
     from: string,
     spender: string,
     amount: string,
-    secretKey: string,
   ): Promise<any> {
     try {
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
@@ -264,6 +265,7 @@ export class EngagementService {
       const high = microAmount >> 64n;
       const low = microAmount & BigInt("0xFFFFFFFFFFFFFFFF");
 
+      const apiWalletAddress = process.env.API_PUBLIC_KEY_WALLET
       const operations = [
         this.contract.call(
           "approve_amounts",
@@ -276,6 +278,7 @@ export class EngagementService {
             }),
           ),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
+          StellarSDK.Address.fromString(apiWalletAddress).toScVal(),
         ),
       ];
 
@@ -299,10 +302,10 @@ export class EngagementService {
   async getAllowance(
     from: string,
     spender: string,
-    secretKey: string,
   ): Promise<any> {
     try {
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
