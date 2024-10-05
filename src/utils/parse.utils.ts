@@ -30,7 +30,7 @@ export function parseEngagementData(
     const engagements = StellarSDK.scValToNative(contractEventV0);
     const { engagement_id, description, issuer, signer, service_provider, amount, balance, cancelled, completed } = engagements[1]
     return {
-      engagement_id: Buffer.from(engagement_id).toString("hex"),
+      engagement_id,
       description,
       issuer,
       signer,
