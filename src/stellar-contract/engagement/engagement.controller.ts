@@ -49,7 +49,7 @@ export class EngagenmentController {
       const result = await this.engagementService.fundEscrow(
         engamentId,
         signer,
-        secretKey
+        secretKey,
       );
       return result;
     } catch (error) {
@@ -70,7 +70,7 @@ export class EngagenmentController {
       const result = await this.engagementService.completeEscrow(
         engamentId,
         signer,
-        secretKey
+        secretKey,
       );
       return result;
     } catch (error) {
@@ -110,7 +110,7 @@ export class EngagenmentController {
       const result = await this.engagementService.refundRemainingFunds(
         engamentId,
         signer,
-        secretKey
+        secretKey,
       );
       return result;
     } catch (error) {
@@ -122,13 +122,10 @@ export class EngagenmentController {
   }
 
   @Get("get-escrow-by-engagement-id")
-  async getEngagementsByClient(
-    @Body("engagementId") engagementId: string,
-  ) {
+  async getEngagementsByClient(@Body("engagementId") engagementId: string) {
     try {
-      const engagements = await this.engagementService.getEscrowByEngagementID(
-        engagementId,
-      );
+      const engagements =
+        await this.engagementService.getEscrowByEngagementID(engagementId);
       return engagements;
     } catch (error) {
       throw new HttpException(
@@ -139,13 +136,9 @@ export class EngagenmentController {
   }
 
   @Get("get-balance")
-  async getBalance(
-    @Body("address") address: string,
-  ) {
+  async getBalance(@Body("address") address: string) {
     try {
-      const engagements = await this.engagementService.getBalance(
-        address,
-      );
+      const engagements = await this.engagementService.getBalance(address);
       return engagements;
     } catch (error) {
       throw new HttpException(

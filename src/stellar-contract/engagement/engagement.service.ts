@@ -39,7 +39,7 @@ export class EngagementService {
     signer: string,
   ): Promise<number> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
@@ -54,8 +54,8 @@ export class EngagementService {
       const operations = [
         this.contract.call(
           "initialize_escrow",
-          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
-          StellarSDK.nativeToScVal(description, { type: "string", }),
+          StellarSDK.nativeToScVal(engagementId, { type: "string" }),
+          StellarSDK.nativeToScVal(description, { type: "string" }),
           StellarSDK.Address.fromString(issuer).toScVal(),
           StellarSDK.Address.fromString(serviceProvider).toScVal(),
           scValPrice,
@@ -80,7 +80,7 @@ export class EngagementService {
   async fundEscrow(
     engagementId: string,
     signer: string,
-    secretKey: string
+    secretKey: string,
   ): Promise<any> {
     try {
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
@@ -92,7 +92,7 @@ export class EngagementService {
       const operations = [
         this.contract.call(
           "fund_escrow",
-          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
           StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
@@ -118,7 +118,7 @@ export class EngagementService {
   async completeEscrow(
     engagementId: string,
     signer: string,
-    secretKey: string
+    secretKey: string,
   ): Promise<any> {
     try {
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
@@ -129,7 +129,7 @@ export class EngagementService {
       const operations = [
         this.contract.call(
           "complete_escrow",
-          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
           StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
@@ -150,12 +150,9 @@ export class EngagementService {
     }
   }
 
-  async cancelEscrow(
-    engagementId: string,
-    signer: string,
-  ): Promise<any> {
+  async cancelEscrow(engagementId: string, signer: string): Promise<any> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
@@ -164,7 +161,7 @@ export class EngagementService {
       const operations = [
         this.contract.call(
           "cancel_escrow",
-          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
         ),
       ];
@@ -186,7 +183,7 @@ export class EngagementService {
   async refundRemainingFunds(
     engagementId: string,
     signer: string,
-    secretKey: string
+    secretKey: string,
   ): Promise<any> {
     try {
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
@@ -197,7 +194,7 @@ export class EngagementService {
       const operations = [
         this.contract.call(
           "refund_remaining_funds",
-          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
           StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
@@ -218,11 +215,9 @@ export class EngagementService {
     }
   }
 
-  async getEscrowByEngagementID(
-    engagementId: string,
-  ): Promise<any> {
+  async getEscrowByEngagementID(engagementId: string): Promise<any> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
@@ -231,7 +226,7 @@ export class EngagementService {
       const operations = [
         this.contract.call(
           "get_escrow_by_id",
-          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.nativeToScVal(engagementId, { type: "string" }),
         ),
       ];
 
@@ -282,7 +277,7 @@ export class EngagementService {
 
   async getBalance(address: string): Promise<any> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
@@ -325,7 +320,7 @@ export class EngagementService {
     amount: string,
   ): Promise<any> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
@@ -335,7 +330,7 @@ export class EngagementService {
       const high = microAmount >> 64n;
       const low = microAmount & BigInt("0xFFFFFFFFFFFFFFFF");
 
-      const apiWalletAddress = process.env.API_PUBLIC_KEY_WALLET
+      const apiWalletAddress = process.env.API_PUBLIC_KEY_WALLET;
       const operations = [
         this.contract.call(
           "approve_amounts",
@@ -369,12 +364,9 @@ export class EngagementService {
     }
   }
 
-  async getAllowance(
-    from: string,
-    spender: string,
-  ): Promise<any> {
+  async getAllowance(from: string, spender: string): Promise<any> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
