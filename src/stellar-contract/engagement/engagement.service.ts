@@ -64,7 +64,6 @@ export class EngagementService {
       ];
 
       const transaction = buildTransaction(account, operations);
-      console.log({ transaction })
 
       return await signAndSendTransaction(
         transaction,
@@ -88,6 +87,7 @@ export class EngagementService {
       const account = await this.server.getAccount(
         this.sourceKeypair.publicKey(),
       );
+      // const account = await this.server.getAccount(signer);
 
       const operations = [
         this.contract.call(
@@ -100,6 +100,8 @@ export class EngagementService {
       ];
 
       const transaction = buildTransaction(account, operations);
+
+      // return transaction.toXDR();
 
       return await signAndSendTransaction(
         transaction,
@@ -127,6 +129,74 @@ export class EngagementService {
       const operations = [
         this.contract.call(
           "complete_escrow",
+          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.Address.fromString(signer).toScVal(),
+          StellarSDK.Address.fromString(this.usdcToken).toScVal(),
+          StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
+        ),
+      ];
+
+      const transaction = buildTransaction(account, operations);
+
+      return await signAndSendTransaction(
+        transaction,
+        this.sourceKeypair,
+        this.server,
+        true,
+      );
+    } catch (error) {
+      console.error("Error calling fund_escrow:", error);
+      throw error;
+    }
+  }
+
+  async cancelEscrow(
+    engagementId: string,
+    signer: string,
+  ): Promise<any> {
+    try {
+      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
+      const account = await this.server.getAccount(
+        this.sourceKeypair.publicKey(),
+      );
+
+      const operations = [
+        this.contract.call(
+          "cancel_escrow",
+          StellarSDK.nativeToScVal(engagementId, { type: "string", }),
+          StellarSDK.Address.fromString(signer).toScVal(),
+        ),
+      ];
+
+      const transaction = buildTransaction(account, operations);
+
+      return await signAndSendTransaction(
+        transaction,
+        this.sourceKeypair,
+        this.server,
+        true,
+      );
+    } catch (error) {
+      console.error("Error calling fund_escrow:", error);
+      throw error;
+    }
+  }
+
+  async refundRemainingFunds(
+    engagementId: string,
+    signer: string,
+    secretKey: string
+  ): Promise<any> {
+    try {
+      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
+      const account = await this.server.getAccount(
+        this.sourceKeypair.publicKey(),
+      );
+
+      const operations = [
+        this.contract.call(
+          "refund_remaining_funds",
           StellarSDK.nativeToScVal(engagementId, { type: "string", }),
           StellarSDK.Address.fromString(signer).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),

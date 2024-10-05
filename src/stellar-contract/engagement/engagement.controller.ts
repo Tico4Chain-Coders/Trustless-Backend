@@ -81,6 +81,46 @@ export class EngagenmentController {
     }
   }
 
+  @Post("cancel-escrow")
+  async cancelEscrow(
+    @Body("engamentId") engamentId: string,
+    @Body("signer") signer: string,
+  ): Promise<any> {
+    try {
+      const result = await this.engagementService.cancelEscrow(
+        engamentId,
+        signer,
+      );
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to cancel escrow",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post("refund-remaining-funds")
+  async refundRemainingFunds(
+    @Body("engamentId") engamentId: string,
+    @Body("signer") signer: string,
+    @Body("secretKey") secretKey: string,
+  ): Promise<any> {
+    try {
+      const result = await this.engagementService.refundRemainingFunds(
+        engamentId,
+        signer,
+        secretKey
+      );
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        "Failed to refund remaining funds",
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Get("get-escrow-by-engagement-id")
   async getEngagementsByClient(
     @Body("engagementId") engagementId: string,
