@@ -4,9 +4,9 @@ import * as StellarSDK from "stellar-sdk";
 export function buildTransaction(
   account: StellarSDK.Account,
   operations: StellarSDK.xdr.Operation[],
-  fee: string = "100",
+  fee: string = StellarSDK.BASE_FEE,
   networkPassphrase: string = StellarSDK.Networks.TESTNET,
-  timeout: number = 30,
+  timeout: number = 300,
 ): StellarSDK.Transaction {
   const transactionBuilder = new StellarSDK.TransactionBuilder(account, { fee })
     .setNetworkPassphrase(networkPassphrase)
@@ -30,13 +30,13 @@ export async function signAndSendTransaction(
   ) => any,
 ): Promise<any> {
   let response: any;
-  transaction.sign(keypair);
 
   if (prepareTransaction) {
     const preparedTransaction = await server.prepareTransaction(transaction);
     preparedTransaction.sign(keypair);
     response = await server.sendTransaction(preparedTransaction);
   } else {
+    transaction.sign(keypair);
     response = await server.sendTransaction(transaction);
   }
 
