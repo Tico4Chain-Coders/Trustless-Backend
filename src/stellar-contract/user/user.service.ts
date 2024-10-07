@@ -68,7 +68,6 @@ export class UserService {
         } while (getResponse.status === "NOT_FOUND");
 
         if (getResponse.status === "SUCCESS") {
-          console.log(`Transaction successful: ${JSON.stringify(getResponse)}`);
           return getResponse;
         } else {
           throw new Error(`Transaction failed: ${getResponse.resultXdr}`);
@@ -79,7 +78,6 @@ export class UserService {
         );
       }
     } catch (error) {
-      console.error("Error calling register function:", error);
       throw error;
     }
   }

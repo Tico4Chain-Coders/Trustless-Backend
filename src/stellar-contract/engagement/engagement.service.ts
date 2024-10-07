@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import * as StellarSDK from "@stellar/stellar-sdk";
+import { mapErrorCodeToMessage } from '../../utils/errors.utils';
 import {
   adjustPricesToMicroUSDC,
   parseEngagementData,
@@ -41,16 +42,11 @@ export class EngagementService {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
-      const account = await this.server.getAccount(
-        this.sourceKeypair.publicKey(),
-      );
-
+      const account = await this.server.getAccount(this.sourceKeypair.publicKey());
+  
       const adjustedPrice = adjustPricesToMicroUSDC(amount);
-
-      const scValPrice = StellarSDK.nativeToScVal(adjustedPrice, {
-        type: "u128",
-      });
-
+      const scValPrice = StellarSDK.nativeToScVal(adjustedPrice, { type: "u128" });
+  
       const operations = [
         this.contract.call(
           "initialize_escrow",
@@ -62,17 +58,23 @@ export class EngagementService {
           StellarSDK.Address.fromString(signer).toScVal(),
         ),
       ];
-
+  
       const transaction = buildTransaction(account, operations);
-
+      
       return await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
         true,
       );
+  
     } catch (error) {
-      console.error("Error calling create_engagement:", JSON.stringify(error));
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw errorMessage
+      }
+
       throw error;
     }
   }
@@ -88,7 +90,6 @@ export class EngagementService {
         this.sourceKeypair.publicKey(),
       );
       // const account = await this.server.getAccount(signer);
-
       const operations = [
         this.contract.call(
           "fund_escrow",
@@ -100,8 +101,9 @@ export class EngagementService {
       ];
 
       const transaction = buildTransaction(account, operations);
+      // const preparedTransaction = await this.server.prepareTransaction(transaction);
 
-      // return transaction.toXDR();
+      // return preparedTransaction.toXDR();
 
       return await signAndSendTransaction(
         transaction,
@@ -110,7 +112,12 @@ export class EngagementService {
         true,
       );
     } catch (error) {
-      console.error("Error calling fund_escrow:", error);
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw errorMessage
+      }
+
       throw error;
     }
   }
@@ -145,7 +152,12 @@ export class EngagementService {
         true,
       );
     } catch (error) {
-      console.error("Error calling fund_escrow:", error);
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw errorMessage
+      }
+
       throw error;
     }
   }
@@ -175,7 +187,12 @@ export class EngagementService {
         true,
       );
     } catch (error) {
-      console.error("Error calling fund_escrow:", error);
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw errorMessage
+      }
+
       throw error;
     }
   }
@@ -210,7 +227,12 @@ export class EngagementService {
         true,
       );
     } catch (error) {
-      console.error("Error calling fund_escrow:", error);
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw errorMessage
+      }
+
       throw error;
     }
   }
@@ -243,8 +265,42 @@ export class EngagementService {
           ),
       );
     } catch (error) {
-      console.error("Error fetching engagements by client:", error);
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw errorMessage
+      }
+
       throw error;
+    }
+  }
+
+  async sendTransaction(signedXdr: string): Promise<any> {
+    const transaction = StellarSDK.TransactionBuilder.fromXDR(
+      signedXdr,
+      StellarSDK.Networks.TESTNET
+    );
+
+    const transactionResult = await this.server.sendTransaction(transaction);
+    // console.log({ transactionResult })
+    if (transactionResult.status === "PENDING") {
+      let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
+      do {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        getResponse = await this.server.getTransaction(transactionResult.hash);
+      } while (getResponse.status === "NOT_FOUND");
+      
+      console.log({ getResponse })
+      console.log({ resultXdr: JSON.stringify(getResponse.resultXdr) })
+      if (getResponse.status === "SUCCESS") {
+        return getResponse;
+      } else {
+        throw new Error(
+          `Transaction failed: ${JSON.stringify(getResponse.resultXdr)}`,
+        );
+      }
+    } else {
+      throw new Error(`Transaction submission failed: ${transactionResult.errorResult}`);
     }
   }
 

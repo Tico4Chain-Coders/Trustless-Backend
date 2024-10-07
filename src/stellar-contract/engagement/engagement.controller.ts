@@ -33,7 +33,7 @@ export class EngagenmentController {
       return result;
     } catch (error) {
       throw new HttpException(
-        "Failed to interact with contract",
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -41,7 +41,7 @@ export class EngagenmentController {
 
   @Post("fund-escrow")
   async fundEscrow(
-    @Body("engamentId") engamentId: string,
+    @Body("engagementId") engamentId: string,
     @Body("signer") signer: string,
     @Body("secretKey") secretKey: string,
   ): Promise<any> {
@@ -54,7 +54,7 @@ export class EngagenmentController {
       return result;
     } catch (error) {
       throw new HttpException(
-        "Failed to fund escrow",
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -75,7 +75,7 @@ export class EngagenmentController {
       return result;
     } catch (error) {
       throw new HttpException(
-        "Failed to complete escrow",
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -94,7 +94,7 @@ export class EngagenmentController {
       return result;
     } catch (error) {
       throw new HttpException(
-        "Failed to cancel escrow",
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -115,7 +115,7 @@ export class EngagenmentController {
       return result;
     } catch (error) {
       throw new HttpException(
-        "Failed to refund remaining funds",
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -129,7 +129,21 @@ export class EngagenmentController {
       return engagements;
     } catch (error) {
       throw new HttpException(
-        "Failed to fetch engagements by address",
+        error,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post("send-transaction")
+  async sendTransaction(@Body("signedXdr") signedXdr: string) {
+    try {
+      const transactionSigned =
+        await this.engagementService.sendTransaction(signedXdr);
+      return transactionSigned;
+    } catch (error) {
+      throw new HttpException(
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -142,7 +156,7 @@ export class EngagenmentController {
       return engagements;
     } catch (error) {
       throw new HttpException(
-        "A problem occurred when obtaining the address balance.",
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -161,7 +175,7 @@ export class EngagenmentController {
       return engagement;
     } catch (error) {
       throw new HttpException(
-        "There was a problem obtaining the address allowance.",
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -175,7 +189,7 @@ export class EngagenmentController {
       return engagements;
     } catch (error) {
       throw new HttpException(
-        "A problem occurred when defining the trustline.",
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -196,7 +210,7 @@ export class EngagenmentController {
       return engagement;
     } catch (error) {
       throw new HttpException(
-        "There was a problem in approving the amounts between the addresses.",
+        error,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
