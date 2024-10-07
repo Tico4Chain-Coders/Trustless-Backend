@@ -1,6 +1,5 @@
 import * as StellarSDK from "stellar-sdk";
 
-// Función para construir la transacción
 export function buildTransaction(
   account: StellarSDK.Account,
   operations: StellarSDK.xdr.Operation[],
@@ -19,7 +18,6 @@ export function buildTransaction(
   return transactionBuilder.build();
 }
 
-// Función para firmar y enviar la transacción
 export async function signAndSendTransaction(
   transaction: StellarSDK.Transaction,
   keypair: StellarSDK.Keypair,
@@ -28,7 +26,7 @@ export async function signAndSendTransaction(
   processResultCallback?: (
     response: StellarSDK.rpc.Api.GetTransactionResponse,
   ) => any,
-): Promise<any> {
+): Promise<StellarSDK.rpc.Api.GetTransactionResponse | StellarSDK.rpc.Api.GetSuccessfulTransactionResponse> {
   let response: any;
 
   if (prepareTransaction) {
@@ -50,9 +48,9 @@ export async function signAndSendTransaction(
 
     if (getResponse.status === "SUCCESS") {
       if (processResultCallback) {
-        return processResultCallback(getResponse); // Se ejecuta el callback si está definido
+        return processResultCallback(getResponse);
       } else {
-        return getResponse; // Devuelve el resultado sin procesar si no hay callback
+        return getResponse;
       }
     } else {
       throw new Error(

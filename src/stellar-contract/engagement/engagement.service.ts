@@ -10,6 +10,7 @@ import {
   buildTransaction,
   signAndSendTransaction,
 } from "src/utils/transaction.utils";
+import { ApiResponse } from "src/interfaces/response.interface";
 
 @Injectable()
 export class EngagementService {
@@ -38,7 +39,7 @@ export class EngagementService {
     serviceProvider: string,
     amount: string,
     signer: string,
-  ): Promise<number> {
+  ): Promise<ApiResponse> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -61,13 +62,19 @@ export class EngagementService {
   
       const transaction = buildTransaction(account, operations);
       
-      return await signAndSendTransaction(
+      const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
         true,
       );
-  
+
+      if( result.status !== 'SUCCESS' ){
+        return { status: result.status, message: 'An unexpected error occurred while trying to initialize the escrow. Please try again' }
+      }
+
+      return { status: result.status, message: 'The escrow has been successfully initialized' }
+
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -83,7 +90,7 @@ export class EngagementService {
     engagementId: string,
     signer: string,
     secretKey: string,
-  ): Promise<any> {
+  ): Promise<ApiResponse> {
     try {
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
       const account = await this.server.getAccount(
@@ -105,12 +112,19 @@ export class EngagementService {
 
       // return preparedTransaction.toXDR();
 
-      return await signAndSendTransaction(
+      const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
         true,
       );
+
+      if( result.status !== 'SUCCESS' ){
+        return { status: result.status, message: 'An unexpected error occurred while trying to fund the escrow. Please try again' }
+      }
+
+      return { status: result.status, message: 'The escrow has been successfully funded' }
+
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -126,7 +140,7 @@ export class EngagementService {
     engagementId: string,
     signer: string,
     secretKey: string,
-  ): Promise<any> {
+  ): Promise<ApiResponse> {
     try {
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
       const account = await this.server.getAccount(
@@ -145,12 +159,19 @@ export class EngagementService {
 
       const transaction = buildTransaction(account, operations);
 
-      return await signAndSendTransaction(
+      const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
         true,
       );
+
+      if( result.status !== 'SUCCESS' ){
+        return { status: result.status, message: 'An unexpected error occurred while trying to complete the escrow. Please try again' }
+      }
+
+      return { status: result.status, message: 'The escrow has been successfully completed' }
+
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -162,7 +183,7 @@ export class EngagementService {
     }
   }
 
-  async cancelEscrow(engagementId: string, signer: string): Promise<any> {
+  async cancelEscrow(engagementId: string, signer: string): Promise<ApiResponse> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -180,12 +201,19 @@ export class EngagementService {
 
       const transaction = buildTransaction(account, operations);
 
-      return await signAndSendTransaction(
+      const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
         true,
       );
+
+      if( result.status !== 'SUCCESS' ){
+        return { status: result.status, message: 'An unexpected error occurred while trying to cancel the escrow. Please try again' }
+      }
+
+      return { status: result.status, message: 'The escrow has been successfully canceled' }
+
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -201,7 +229,7 @@ export class EngagementService {
     engagementId: string,
     signer: string,
     secretKey: string,
-  ): Promise<any> {
+  ): Promise<ApiResponse> {
     try {
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
       const account = await this.server.getAccount(
@@ -220,12 +248,19 @@ export class EngagementService {
 
       const transaction = buildTransaction(account, operations);
 
-      return await signAndSendTransaction(
+      const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
         true,
       );
+
+      if( result.status !== 'SUCCESS' ){
+        return { status: result.status, message: 'An unexpected error occurred while trying to refund the escrow. Please try again' }
+      }
+
+      return { status: result.status, message: 'Escrow funds have been successfully refunded' }
+
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -237,7 +272,7 @@ export class EngagementService {
     }
   }
 
-  async getEscrowByEngagementID(engagementId: string): Promise<any> {
+  async getEscrowByEngagementID(engagementId: string): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -304,7 +339,7 @@ export class EngagementService {
     }
   }
 
-  async establishTrustline(sourceSecretKey: string): Promise<any> {
+  async establishTrustline(sourceSecretKey: string): Promise<ApiResponse> {
     try {
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(sourceSecretKey);
       const account = await this.server.getAccount(
@@ -319,19 +354,26 @@ export class EngagementService {
 
       const transaction = buildTransaction(account, operations);
 
-      return await signAndSendTransaction(
+      const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
-        false,
+        true,
       );
+
+      if( result.status !== 'SUCCESS' ){
+        return { status: result.status, message: 'An unexpected error occurred while trying to define the trustline in the USDC token. Please try again' }
+      }
+
+      return { status: result.status, message: 'The trust line has been correctly defined in the USDC token' }
+
     } catch (error) {
       console.log("Error:", error);
       throw error;
     }
   }
 
-  async getBalance(address: string): Promise<any> {
+  async getBalance(address: string): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -361,6 +403,7 @@ export class EngagementService {
           return { balance: result };
         },
       );
+
     } catch (error) {
       console.error(
         "An error occurred while trying to obtain the address balance:",
@@ -374,7 +417,7 @@ export class EngagementService {
     from: string,
     spender: string,
     amount: string,
-  ): Promise<any> {
+  ): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -420,7 +463,7 @@ export class EngagementService {
     }
   }
 
-  async getAllowance(from: string, spender: string): Promise<any> {
+  async getAllowance(from: string, spender: string): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);

@@ -1,3 +1,4 @@
+import * as StellarSDK from '@stellar/stellar-sdk';
 import {
   Body,
   Controller,
@@ -6,7 +7,9 @@ import {
   HttpStatus,
   Post,
 } from "@nestjs/common";
+
 import { EngagementService } from "./engagement.service";
+import { ApiResponse } from "src/interfaces/response.interface";
 
 @Controller("engagement")
 export class EngagenmentController {
@@ -20,7 +23,7 @@ export class EngagenmentController {
     @Body("serviceProvider") serviceProvider: string,
     @Body("amount") amount: string,
     @Body("signer") signer: string,
-  ): Promise<number> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.engagementService.initializeEscrow(
         engagementId,
@@ -44,7 +47,7 @@ export class EngagenmentController {
     @Body("engagementId") engamentId: string,
     @Body("signer") signer: string,
     @Body("secretKey") secretKey: string,
-  ): Promise<any> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.engagementService.fundEscrow(
         engamentId,
@@ -65,7 +68,7 @@ export class EngagenmentController {
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
     @Body("secretKey") secretKey: string,
-  ): Promise<any> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.engagementService.completeEscrow(
         engamentId,
@@ -85,7 +88,7 @@ export class EngagenmentController {
   async cancelEscrow(
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
-  ): Promise<any> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.engagementService.cancelEscrow(
         engamentId,
@@ -105,7 +108,7 @@ export class EngagenmentController {
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
     @Body("secretKey") secretKey: string,
-  ): Promise<any> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.engagementService.refundRemainingFunds(
         engamentId,
@@ -122,7 +125,7 @@ export class EngagenmentController {
   }
 
   @Get("get-escrow-by-engagement-id")
-  async getEngagementsByClient(@Body("engagementId") engagementId: string) {
+  async getEngagementsByClient(@Body("engagementId") engagementId: string): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
     try {
       const engagements =
         await this.engagementService.getEscrowByEngagementID(engagementId);
@@ -150,7 +153,7 @@ export class EngagenmentController {
   }
 
   @Get("get-balance")
-  async getBalance(@Body("address") address: string) {
+  async getBalance(@Body("address") address: string): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
     try {
       const engagements = await this.engagementService.getBalance(address);
       return engagements;
@@ -166,7 +169,7 @@ export class EngagenmentController {
   async getAllowance(
     @Body("from") from: string,
     @Body("spender") spender: string,
-  ) {
+  ): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
     try {
       const engagement = await this.engagementService.getAllowance(
         from,
@@ -182,7 +185,7 @@ export class EngagenmentController {
   }
 
   @Post("set-trustline")
-  async setTrustline(@Body("sourceSecretKey") sourceSecretKey: string) {
+  async setTrustline(@Body("sourceSecretKey") sourceSecretKey: string): Promise<ApiResponse> {
     try {
       const engagements =
         await this.engagementService.establishTrustline(sourceSecretKey);
@@ -200,7 +203,7 @@ export class EngagenmentController {
     @Body("from") from: string,
     @Body("spender") spender: string,
     @Body("amount") amount: string,
-  ) {
+  ): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
     try {
       const engagement = await this.engagementService.approve_amount(
         from,
