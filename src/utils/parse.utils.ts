@@ -75,7 +75,7 @@ export function parseBalanceByAddressData(
     const contractEventV0 = scVal.data();
 
     const data = StellarSDK.scValToNative(contractEventV0);
-    const value = Number(data[2]) / 1_000_000;
+    const value = Number(data[2]) / 10_000_000;
     return value;
   } catch (error) {
     console.error("Error parsing escrow data:", error);
