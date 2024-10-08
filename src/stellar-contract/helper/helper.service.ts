@@ -96,101 +96,10 @@ export class HelperService {
     }
   }
 
-  async getBalance(
-    address: string,
-  ): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
-    try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
-      const account = await this.server.getAccount(
-        this.sourceKeypair.publicKey(),
-      );
-
-      const operations = [
-        this.contract.call(
-          "get_balance",
-          StellarSDK.Address.fromString(address).toScVal(),
-          StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-        ),
-      ];
-
-      const transaction = buildTransaction(account, operations);
-
-      return await signAndSendTransaction(
-        transaction,
-        this.sourceKeypair,
-        this.server,
-        true,
-        (response) => {
-          const result = parseBalanceByAddressData(
-            response as StellarSDK.rpc.Api.GetSuccessfulTransactionResponse,
-          );
-          return { balance: result };
-        },
-      );
-    } catch (error) {
-      console.error(
-        "An error occurred while trying to obtain the address balance:",
-        error,
-      );
-      throw error;
-    }
-  }
-
-  async approve_amount(
-    from: string,
-    spender: string,
-    amount: string,
-  ): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
-    try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
-      const account = await this.server.getAccount(
-        this.sourceKeypair.publicKey(),
-      );
-
-      const microAmount = BigInt(Math.round(parseFloat(amount) * 1e6));
-      const high = microAmount >> 64n;
-      const low = microAmount & BigInt("0xFFFFFFFFFFFFFFFF");
-
-      const apiWalletAddress = process.env.API_PUBLIC_KEY_WALLET;
-      const operations = [
-        this.contract.call(
-          "approve_amounts",
-          StellarSDK.Address.fromString(from).toScVal(),
-          StellarSDK.Address.fromString(spender).toScVal(),
-          StellarSDK.xdr.ScVal.scvI128(
-            new StellarSDK.xdr.Int128Parts({
-              hi: StellarSDK.xdr.Int64.fromString(high.toString()),
-              lo: StellarSDK.xdr.Uint64.fromString(low.toString()),
-            }),
-          ),
-          StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-          StellarSDK.Address.fromString(apiWalletAddress).toScVal(),
-        ),
-      ];
-
-      const transaction = buildTransaction(account, operations);
-
-      return await signAndSendTransaction(
-        transaction,
-        this.sourceKeypair,
-        this.server,
-        true,
-      );
-    } catch (error) {
-      console.error(
-        "An error occurred when trying to approve amounts between addresses:",
-        error,
-      );
-      throw error;
-    }
-  }
-
   async getAllowance(
     from: string,
     spender: string,
-  ): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
+  ): Promise<{ allowance: number }> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -209,18 +118,17 @@ export class HelperService {
 
       const transaction = buildTransaction(account, operations);
 
-      return await signAndSendTransaction(
+      const allowance =  await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
         true,
-        (response) => {
-          const result = parseBalanceByAddressData(
-            response as StellarSDK.rpc.Api.GetSuccessfulTransactionResponse,
-          );
-          return { allownce: result };
-        },
       );
+
+      const parseAllowance = parseBalanceByAddressData(allowance);
+
+      return { allowance: parseAllowance };
+
     } catch (error) {
       console.error(
         "An error occurred while trying to obtain the allowance of an address:",
