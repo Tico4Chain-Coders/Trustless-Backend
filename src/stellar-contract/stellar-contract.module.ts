@@ -1,8 +1,9 @@
 import { Module } from "@nestjs/common";
-import { EngagementModule } from "./engagement/engagement.module";
+import { EscrowModule } from "./escrow/escrow.module";
 import { UserModule } from "./user/user.module";
+import { HelperModule } from "./helper/helper.module";
 
 @Module({
-  imports: [EngagementModule, UserModule],
+  imports: [EscrowModule, UserModule, HelperModule],
 })
 export class StellarContractModule {}

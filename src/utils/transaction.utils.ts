@@ -26,7 +26,10 @@ export async function signAndSendTransaction(
   processResultCallback?: (
     response: StellarSDK.rpc.Api.GetTransactionResponse,
   ) => any,
-): Promise<StellarSDK.rpc.Api.GetTransactionResponse | StellarSDK.rpc.Api.GetSuccessfulTransactionResponse> {
+): Promise<
+  | StellarSDK.rpc.Api.GetTransactionResponse
+  | StellarSDK.rpc.Api.GetSuccessfulTransactionResponse
+> {
   let response: any;
 
   if (prepareTransaction) {
