@@ -23,13 +23,7 @@ export async function signAndSendTransaction(
   keypair: StellarSDK.Keypair,
   server: StellarSDK.SorobanRpc.Server,
   prepareTransaction: boolean,
-  processResultCallback?: (
-    response: StellarSDK.rpc.Api.GetTransactionResponse,
-  ) => any,
-): Promise<
-  | StellarSDK.rpc.Api.GetTransactionResponse
-  | StellarSDK.rpc.Api.GetSuccessfulTransactionResponse
-> {
+): Promise<StellarSDK.rpc.Api.GetSuccessfulTransactionResponse> {
   let response: any;
 
   if (prepareTransaction) {
@@ -50,11 +44,7 @@ export async function signAndSendTransaction(
     } while (getResponse.status === "NOT_FOUND");
 
     if (getResponse.status === "SUCCESS") {
-      if (processResultCallback) {
-        return processResultCallback(getResponse);
-      } else {
-        return getResponse;
-      }
+      return getResponse;
     } else {
       throw new Error(
         `Transaction failed: ${JSON.stringify(getResponse.resultXdr)}`,

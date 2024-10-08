@@ -1,4 +1,3 @@
-import * as StellarSDK from "@stellar/stellar-sdk";
 import {
   Body,
   Controller,
@@ -9,7 +8,7 @@ import {
 } from "@nestjs/common";
 
 import { EscrowService } from "./escrow.service";
-import { ApiResponse } from "src/interfaces/response.interface";
+import { ApiResponse, escrowResponse } from "src/interfaces/response.interface";
 
 @Controller("escrow")
 export class EscrowController {
@@ -109,11 +108,11 @@ export class EscrowController {
   @Get("get-escrow-by-engagement-id")
   async getEngagementsByClient(
     @Body("engagementId") engagementId: string,
-  ): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
+  ): Promise<escrowResponse> {
     try {
-      const engagements =
+      const escrow =
         await this.escrowService.getEscrowByEngagementID(engagementId);
-      return engagements;
+      return escrow;
     } catch (error) {
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }

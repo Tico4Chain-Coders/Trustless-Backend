@@ -9,7 +9,7 @@ import {
   buildTransaction,
   signAndSendTransaction,
 } from "src/utils/transaction.utils";
-import { ApiResponse } from "src/interfaces/response.interface";
+import { ApiResponse, escrowResponse } from "src/interfaces/response.interface";
 
 @Injectable()
 export class EscrowService {
@@ -308,7 +308,7 @@ export class EscrowService {
 
   async getEscrowByEngagementID(
     engagementId: string,
-  ): Promise<StellarSDK.rpc.Api.GetTransactionResponse> {
+  ): Promise<escrowResponse> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -325,16 +325,17 @@ export class EscrowService {
 
       const transaction = buildTransaction(account, operations);
 
-      return await signAndSendTransaction(
+      const escrow = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
         true,
-        (response) =>
-          parseEngagementData(
-            response as StellarSDK.rpc.Api.GetSuccessfulTransactionResponse,
-          ),
       );
+
+      const parseEscrow = parseEngagementData(escrow);
+
+      return parseEscrow
+
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];

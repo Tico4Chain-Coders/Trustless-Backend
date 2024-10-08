@@ -1,4 +1,5 @@
 import * as StellarSDK from "@stellar/stellar-sdk";
+import { escrowResponse } from "src/interfaces/response.interface";
 
 export function adjustPricesToMicroUSDC(price: string): string {
   const microUSDC = BigInt(Math.round(parseFloat(price) * 1e7));
@@ -11,7 +12,7 @@ export function microUSDToDecimal(microUSDC: bigint | number): number {
 
 export function parseEngagementData(
   response: StellarSDK.rpc.Api.GetSuccessfulTransactionResponse,
-): any {
+): escrowResponse {
   try {
     const xdrResult = response.resultMetaXdr;
     const xdrBuffer = xdrResult.toXDR();
@@ -51,7 +52,7 @@ export function parseEngagementData(
       completed,
     };
   } catch (error) {
-    console.error("Error parsing engagements data:", error);
+    console.error("Error parsing escrow data:", error);
     throw error;
   }
 }
