@@ -10,7 +10,8 @@
 # Trustless Work Private API
 
 ## API DOCS
-Trustless Work API DOCS <- LINK
+
+<a href="https://trustless-work.gitbook.io/trustless-work" target="blank">Trustless Work API DOCS</a>
 
 ## Description
 This repository contains the API code for interacting with Trustless smart contracts. It connects the frontend with the blockchain, ensuring secure communication and reliable contract management within the dApp.
