@@ -108,7 +108,7 @@ export class EscrowController {
   @Get("get-escrow-by-engagement-id")
   async getEngagementsByClient(
     @Body("engagementId") engagementId: string,
-  ): Promise<escrowResponse> {
+  ): Promise<escrowResponse | ApiResponse> {
     try {
       const escrow =
         await this.escrowService.getEscrowByEngagementID(engagementId);

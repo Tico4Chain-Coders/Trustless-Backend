@@ -34,6 +34,8 @@ export function mapErrorCodeToMessage(code: string): string {
       return "No funds available to refund";
     case "17":
       return "The contract has no balance to repay";
+    case "18":
+      return "Escrow not found";
     default:
       return "Unknown error occurred in the contract";
   }

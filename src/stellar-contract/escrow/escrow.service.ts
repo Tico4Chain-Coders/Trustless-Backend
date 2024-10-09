@@ -308,7 +308,7 @@ export class EscrowService {
 
   async getEscrowByEngagementID(
     engagementId: string,
-  ): Promise<escrowResponse> {
+  ): Promise<escrowResponse | ApiResponse> {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -325,14 +325,22 @@ export class EscrowService {
 
       const transaction = buildTransaction(account, operations);
 
-      const escrow = await signAndSendTransaction(
+      const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
         true,
       );
 
-      const parseEscrow = parseEngagementData(escrow);
+      if (result.status !== "SUCCESS") {
+        return {
+          status: result.status,
+          message:
+            "An unexpected error occurred while trying to refund the escrow. Please try again",
+        };
+      }
+
+      const parseEscrow = parseEngagementData(result);
 
       return parseEscrow
 
