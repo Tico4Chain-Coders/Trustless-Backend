@@ -5,16 +5,28 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Query,
 } from "@nestjs/common";
 
 import { EscrowService } from "./escrow.service";
 import { ApiResponse, escrowResponse } from "src/interfaces/response.interface";
+import { ApiTags } from "@nestjs/swagger";
+import {
+  ApiCancelEscrow,
+  ApiCompleteEscrow,
+  ApiFundEscrow,
+  ApiGetEscrowByEngagementIdEscrow,
+  ApiInitializeEscrow,
+  ApiRefundRemainingFundsEscrow,
+} from "src/swagger";
 
+@ApiTags("Escrow")
 @Controller("escrow")
 export class EscrowController {
   constructor(private readonly escrowService: EscrowService) {}
 
   @Post("initialize-escrow")
+  @ApiInitializeEscrow()
   async initializeEscrow(
     @Body("engagementId") engagementId: string,
     @Body("description") description: string,
@@ -39,6 +51,7 @@ export class EscrowController {
   }
 
   @Post("fund-escrow")
+  @ApiFundEscrow()
   async fundEscrow(
     @Body("engagementId") engamentId: string,
     @Body("signer") signer: string,
@@ -57,6 +70,7 @@ export class EscrowController {
   }
 
   @Post("complete-escrow")
+  @ApiCompleteEscrow()
   async completeEscrow(
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
@@ -75,6 +89,7 @@ export class EscrowController {
   }
 
   @Post("cancel-escrow")
+  @ApiCancelEscrow()
   async cancelEscrow(
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
@@ -88,6 +103,7 @@ export class EscrowController {
   }
 
   @Post("refund-remaining-funds")
+  @ApiRefundRemainingFundsEscrow()
   async refundRemainingFunds(
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
@@ -106,8 +122,9 @@ export class EscrowController {
   }
 
   @Get("get-escrow-by-engagement-id")
-  async getEngagementsByClient(
-    @Body("engagementId") engagementId: string,
+  @ApiGetEscrowByEngagementIdEscrow()
+  async getEscrowByEngagementId(
+    @Query("engagementId") engagementId: string,
   ): Promise<escrowResponse | ApiResponse> {
     try {
       const escrow =

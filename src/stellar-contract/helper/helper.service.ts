@@ -118,7 +118,7 @@ export class HelperService {
 
       const transaction = buildTransaction(account, operations);
 
-      const allowance =  await signAndSendTransaction(
+      const allowance = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.server,
@@ -128,7 +128,6 @@ export class HelperService {
       const parseAllowance = parseBalanceByAddressData(allowance);
 
       return { allowance: parseAllowance };
-
     } catch (error) {
       console.error(
         "An error occurred while trying to obtain the allowance of an address:",

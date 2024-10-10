@@ -14,6 +14,7 @@
 <a href="https://trustless-work.gitbook.io/trustless-work" target="blank">Trustless Work API DOCS</a>
 
 ## Description
+
 This repository contains the API code for interacting with Trustless smart contracts. It connects the frontend with the blockchain, ensuring secure communication and reliable contract management within the dApp.
 
 ## Project setup
@@ -55,9 +56,14 @@ npm run test:cov
 ```
 
 ## Execute the EndPoints
-### Use Postman, ThunderClient, or another tools to Http requests.
+
+### Use Postman, ThunderClient, Swagger, or another tools to Http requests.
 
 Follow the API Doc, and check your Contract information here: [TestNet Stellar](https://stellar.expert/explorer/testnet)
+
+### To use Swagger, please follow the information below:
+
+Go to: `http://localhost:3000/docs`
 
 ## License
 

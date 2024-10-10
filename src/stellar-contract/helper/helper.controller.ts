@@ -1,4 +1,3 @@
-import * as StellarSDK from "@stellar/stellar-sdk";
 import {
   Body,
   Controller,
@@ -6,15 +5,27 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Query,
 } from "@nestjs/common";
 import { HelperService } from "./helper.service";
 import { ApiResponse } from "src/interfaces/response.interface";
+import { ApiBody, ApiTags } from "@nestjs/swagger";
+import {
+  SendTransaction,
+  SetTrustline,
+} from "src/swagger/classes/helper.class";
+import {
+  SendTransactionDefaultValue,
+  SetTrustlineDefaultValue,
+} from "src/swagger/default-values-in-body/helper-default-value";
 
+@ApiTags("Helper")
 @Controller("helper")
 export class HelperController {
   constructor(private readonly helperService: HelperService) {}
 
   @Post("send-transaction")
+  @ApiBody({ type: SendTransaction, examples: SendTransactionDefaultValue })
   async sendTransaction(@Body("signedXdr") signedXdr: string) {
     try {
       const transactionSigned =
@@ -27,8 +38,8 @@ export class HelperController {
 
   @Get("get-allowance")
   async getAllowance(
-    @Body("from") from: string,
-    @Body("spender") spender: string,
+    @Query("from") from: string,
+    @Query("spender") spender: string,
   ): Promise<{ allowance: number }> {
     try {
       const allowance = await this.helperService.getAllowance(from, spender);
@@ -39,6 +50,7 @@ export class HelperController {
   }
 
   @Post("set-trustline")
+  @ApiBody({ type: SetTrustline, examples: SetTrustlineDefaultValue })
   async setTrustline(
     @Body("sourceSecretKey") sourceSecretKey: string,
   ): Promise<ApiResponse> {

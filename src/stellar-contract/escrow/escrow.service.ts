@@ -342,8 +342,7 @@ export class EscrowService {
 
       const parseEscrow = parseEngagementData(result);
 
-      return parseEscrow
-
+      return parseEscrow;
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
