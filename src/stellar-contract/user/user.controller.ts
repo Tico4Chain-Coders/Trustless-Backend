@@ -6,12 +6,16 @@ import {
   Post,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
+import { ApiTags } from "@nestjs/swagger";
+import { DisabledEndpoint } from "src/swagger/decorators/disabled-endpoint";
 
+@ApiTags("User")
 @Controller("user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post("register")
+  @DisabledEndpoint()
   async register(
     @Body("userAddress") userAddress: string,
     @Body("name") name: string,
@@ -35,6 +39,7 @@ export class UserController {
   }
 
   @Post("login")
+  @DisabledEndpoint()
   async login(
     @Body("userAddress") userAddress: string,
     @Body("secretKey") secretKey: string,
