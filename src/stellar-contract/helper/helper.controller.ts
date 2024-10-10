@@ -27,8 +27,8 @@ export class HelperController {
 
   @Get("get-allowance")
   async getAllowance(
-    @Body("from") from: string,
-    @Body("spender") spender: string,
+    @Query("from") from: string,
+    @Query("spender") spender: string,
   ): Promise<{ allowance: number }> {
     try {
       const allowance = await this.helperService.getAllowance(from, spender);
