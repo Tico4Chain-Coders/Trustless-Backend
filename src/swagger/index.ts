@@ -36,6 +36,10 @@ export const ApiInitializeEscrow = () => {
       status: 500,
       description: "Prices cannot be zero",
     }),
+    ApiResponse({
+      status: 429,
+      description: "ThrottlerException: Too Many Requests",
+    }),
   );
 };
 
@@ -58,6 +62,10 @@ export const ApiFundEscrow = () => {
         - Escrow not found\n
         - Not enough allowance to fund this escrow`,
     }),
+    ApiResponse({
+      status: 429,
+      description: "ThrottlerException: Too Many Requests",
+    }),
   );
 };
 
@@ -79,6 +87,10 @@ export const ApiCompleteEscrow = () => {
           - Escrow not found\n
           - The signer does not have sufficient funds`,
     }),
+    ApiResponse({
+      status: 429,
+      description: "ThrottlerException: Too Many Requests",
+    }),
   );
 };
 
@@ -98,6 +110,10 @@ export const ApiCancelEscrow = () => {
             - Escrow already completed\n
             - Escrow not found\n
             - Escrow already canceled\n`,
+    }),
+    ApiResponse({
+      status: 429,
+      description: "ThrottlerException: Too Many Requests",
     }),
   );
 };
@@ -122,6 +138,10 @@ export const ApiRefundRemainingFundsEscrow = () => {
               - Escrow not found\n
               - The contract has no balance to repay\n`,
     }),
+    ApiResponse({
+      status: 429,
+      description: "ThrottlerException: Too Many Requests",
+    }),
   );
 };
 
@@ -141,6 +161,10 @@ export const ApiGetEscrowByEngagementIdEscrow = () => {
                 - The escrow must be cancelled to refund the amounts\n
                 - Escrow not found\n
                 - The contract has no balance to repay\n`,
+    }),
+    ApiResponse({
+      status: 429,
+      description: "ThrottlerException: Too Many Requests",
     }),
   );
 };
