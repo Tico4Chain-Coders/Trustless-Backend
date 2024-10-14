@@ -1,3 +1,4 @@
+import * as StellarSDK from "@stellar/stellar-sdk";
 import {
   Body,
   Controller,
@@ -25,8 +26,7 @@ export class HelperController {
   constructor(private readonly helperService: HelperService) {}
 
   @Post("send-transaction")
-  @ApiBody({ type: SendTransaction, examples: SendTransactionDefaultValue })
-  async sendTransaction(@Body("signedXdr") signedXdr: string) {
+  async sendTransaction(@Body("signedXdr") signedXdr: string): Promise<StellarSDK.Horizon.HorizonApi.SubmitTransactionResponse> {
     try {
       const transactionSigned =
         await this.helperService.sendTransaction(signedXdr);

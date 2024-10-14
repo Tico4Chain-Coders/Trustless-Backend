@@ -9,15 +9,20 @@ import { ApiResponse } from "src/interfaces/response.interface";
 
 @Injectable()
 export class HelperService {
-  private server: StellarSDK.SorobanRpc.Server;
+  private server: StellarSDK.Horizon.Server;
+  private sorobanServer: StellarSDK.SorobanRpc.Server;
   private contract: StellarSDK.Contract;
   private sourceKeypair: StellarSDK.Keypair;
   private usdcToken: string;
   private usdcTokenPublic: string;
 
   constructor() {
-    this.server = new StellarSDK.SorobanRpc.Server(
+    this.server = new StellarSDK.Horizon.Server(
       `${process.env.SERVER_URL}`,
+      { allowHttp: true },
+    );
+    this.sorobanServer = new StellarSDK.SorobanRpc.Server(
+      `${process.env.SOROBAN_SERVER_URL}`,
       { allowHttp: true },
     );
     this.usdcToken = process.env.USDC_SOROBAN_CIRCLE_TOKEN_TEST;
@@ -25,41 +30,24 @@ export class HelperService {
     this.contract = new StellarSDK.Contract(process.env.TRUSTLESS_CONTRACT_ID);
   }
 
-  async sendTransaction(signedXdr: string): Promise<any> {
-    const transaction = StellarSDK.TransactionBuilder.fromXDR(
-      signedXdr,
-      StellarSDK.Networks.TESTNET,
-    );
-
-    const transactionResult = await this.server.sendTransaction(transaction);
-    // console.log({ transactionResult })
-    if (transactionResult.status === "PENDING") {
-      let getResponse: StellarSDK.rpc.Api.GetTransactionResponse;
-      do {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        getResponse = await this.server.getTransaction(transactionResult.hash);
-      } while (getResponse.status === "NOT_FOUND");
-
-      console.log({ getResponse });
-      console.log({ resultXdr: JSON.stringify(getResponse.resultXdr) });
-      if (getResponse.status === "SUCCESS") {
-        return getResponse;
-      } else {
-        throw new Error(
-          `Transaction failed: ${JSON.stringify(getResponse.resultXdr)}`,
-        );
-      }
-    } else {
-      throw new Error(
-        `Transaction submission failed: ${transactionResult.errorResult}`,
+  async sendTransaction(signedXdr: string): Promise<StellarSDK.Horizon.HorizonApi.SubmitTransactionResponse> {
+    try {
+      const transaction = StellarSDK.TransactionBuilder.fromXDR(
+        signedXdr,
+        StellarSDK.Networks.TESTNET,
       );
+      const response = await this.server.submitTransaction(transaction);
+
+      return response
+    } catch (error) {
+      throw new Error(error)
     }
   }
 
   async establishTrustline(sourceSecretKey: string): Promise<ApiResponse> {
     try {
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(sourceSecretKey);
-      const account = await this.server.getAccount(
+      const account = await this.sorobanServer.getAccount(
         this.sourceKeypair.publicKey(),
       );
 
@@ -74,7 +62,7 @@ export class HelperService {
       const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
-        this.server,
+        this.sorobanServer,
         true,
       );
 
@@ -103,7 +91,7 @@ export class HelperService {
     try {
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
-      const account = await this.server.getAccount(
+      const account = await this.sorobanServer.getAccount(
         this.sourceKeypair.publicKey(),
       );
 
@@ -121,7 +109,7 @@ export class HelperService {
       const allowance = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
-        this.server,
+        this.sorobanServer,
         true,
       );
 
