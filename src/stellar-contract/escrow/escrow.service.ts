@@ -13,36 +13,37 @@ import { ApiResponse, escrowResponse } from "src/interfaces/response.interface";
 
 @Injectable()
 export class EscrowService {
-  private server: StellarSDK.SorobanRpc.Server;
-  private contract: StellarSDK.Contract;
+  private server: StellarSDK.Horizon.Server;
+  private sorobanServer: StellarSDK.SorobanRpc.Server;
   private sourceKeypair: StellarSDK.Keypair;
   private trustlessContractId: string;
   private usdcToken: string;
 
   constructor() {
-    this.server = new StellarSDK.SorobanRpc.Server(
+    this.server = new StellarSDK.Horizon.Server(
       `${process.env.SERVER_URL}`,
+      { allowHttp: true },
+    );
+    this.sorobanServer = new StellarSDK.SorobanRpc.Server(
+      `${process.env.SOROBAN_SERVER_URL}`,
       { allowHttp: true },
     );
     this.trustlessContractId = process.env.TRUSTLESS_CONTRACT_ID;
     this.usdcToken = process.env.USDC_SOROBAN_CIRCLE_TOKEN_TEST;
-    this.contract = new StellarSDK.Contract(process.env.TRUSTLESS_CONTRACT_ID);
   }
 
   async initializeEscrow(
+    contractId: string,
     engagementId: string,
     description: string,
     issuer: string,
     serviceProvider: string,
     amount: string,
     signer: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
-      const account = await this.server.getAccount(
-        this.sourceKeypair.publicKey(),
-      );
+      const contract = new StellarSDK.Contract(contractId);
+      const account = await this.sorobanServer.getAccount(signer);
 
       const adjustedPrice = adjustPricesToMicroUSDC(amount);
       const scValPrice = StellarSDK.nativeToScVal(adjustedPrice, {
@@ -50,7 +51,7 @@ export class EscrowService {
       });
 
       const operations = [
-        this.contract.call(
+        contract.call(
           "initialize_escrow",
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.nativeToScVal(description, { type: "string" }),
@@ -62,26 +63,10 @@ export class EscrowService {
       ];
 
       const transaction = buildTransaction(account, operations);
+      const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
+      await this.sorobanServer.simulateTransaction(preparedTransaction);
 
-      const result = await signAndSendTransaction(
-        transaction,
-        this.sourceKeypair,
-        this.server,
-        true,
-      );
-
-      if (result.status !== "SUCCESS") {
-        return {
-          status: result.status,
-          message:
-            "An unexpected error occurred while trying to initialize the escrow. Please try again",
-        };
-      }
-
-      return {
-        status: result.status,
-        message: "The escrow has been successfully initialized",
-      };
+      return preparedTransaction.toXDR();
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -94,18 +79,15 @@ export class EscrowService {
   }
 
   async fundEscrow(
+    contractId: string,
     engagementId: string,
     signer: string,
-    secretKey: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
-      const account = await this.server.getAccount(
-        this.sourceKeypair.publicKey(),
-      );
-      // const account = await this.server.getAccount(signer);
+      const contract = new StellarSDK.Contract(contractId);
+      const account = await this.sorobanServer.getAccount(signer);
       const operations = [
-        this.contract.call(
+        contract.call(
           "fund_escrow",
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
@@ -114,31 +96,12 @@ export class EscrowService {
         ),
       ];
 
-      const transaction = buildTransaction(account, operations);
-      // const preparedTransaction = await this.server.prepareTransaction(transaction);
+      const transaction = buildTransaction(account, operations, "1000");
+      const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
-      // return preparedTransaction.toXDR();
-
-      const result = await signAndSendTransaction(
-        transaction,
-        this.sourceKeypair,
-        this.server,
-        true,
-      );
-
-      if (result.status !== "SUCCESS") {
-        return {
-          status: result.status,
-          message:
-            "An unexpected error occurred while trying to fund the escrow. Please try again",
-        };
-      }
-
-      return {
-        status: result.status,
-        message: "The escrow has been successfully funded",
-      };
+      return preparedTransaction.toXDR();
     } catch (error) {
+      console.log({ error })
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
         const errorMessage = mapErrorCodeToMessage(errorCode);
@@ -150,18 +113,16 @@ export class EscrowService {
   }
 
   async completeEscrow(
+    contractId: string,
     engagementId: string,
     signer: string,
-    secretKey: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
-      const account = await this.server.getAccount(
-        this.sourceKeypair.publicKey(),
-      );
+      const contract = new StellarSDK.Contract(contractId);
+      const account = await this.sorobanServer.getAccount(signer);
 
       const operations = [
-        this.contract.call(
+        contract.call(
           "complete_escrow",
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
@@ -171,26 +132,9 @@ export class EscrowService {
       ];
 
       const transaction = buildTransaction(account, operations);
+      const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
-      const result = await signAndSendTransaction(
-        transaction,
-        this.sourceKeypair,
-        this.server,
-        true,
-      );
-
-      if (result.status !== "SUCCESS") {
-        return {
-          status: result.status,
-          message:
-            "An unexpected error occurred while trying to complete the escrow. Please try again",
-        };
-      }
-
-      return {
-        status: result.status,
-        message: "The escrow has been successfully completed",
-      };
+      return preparedTransaction.toXDR();
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -203,18 +147,16 @@ export class EscrowService {
   }
 
   async cancelEscrow(
+    contractId: string,
     engagementId: string,
     signer: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
-      const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
-      const account = await this.server.getAccount(
-        this.sourceKeypair.publicKey(),
-      );
+      const contract = new StellarSDK.Contract(contractId);
+      const account = await this.server.loadAccount(signer);
 
       const operations = [
-        this.contract.call(
+        contract.call(
           "cancel_escrow",
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
@@ -222,26 +164,9 @@ export class EscrowService {
       ];
 
       const transaction = buildTransaction(account, operations);
+      const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
-      const result = await signAndSendTransaction(
-        transaction,
-        this.sourceKeypair,
-        this.server,
-        true,
-      );
-
-      if (result.status !== "SUCCESS") {
-        return {
-          status: result.status,
-          message:
-            "An unexpected error occurred while trying to cancel the escrow. Please try again",
-        };
-      }
-
-      return {
-        status: result.status,
-        message: "The escrow has been successfully canceled",
-      };
+      return preparedTransaction.toXDR();
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -254,18 +179,16 @@ export class EscrowService {
   }
 
   async refundRemainingFunds(
+    contractId: string,
     engagementId: string,
     signer: string,
-    secretKey: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
-      this.sourceKeypair = StellarSDK.Keypair.fromSecret(secretKey);
-      const account = await this.server.getAccount(
-        this.sourceKeypair.publicKey(),
-      );
+      const contract = new StellarSDK.Contract(contractId);
+      const account = await this.server.loadAccount(signer);
 
       const operations = [
-        this.contract.call(
+        contract.call(
           "refund_remaining_funds",
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
@@ -275,26 +198,9 @@ export class EscrowService {
       ];
 
       const transaction = buildTransaction(account, operations);
+      const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
-      const result = await signAndSendTransaction(
-        transaction,
-        this.sourceKeypair,
-        this.server,
-        true,
-      );
-
-      if (result.status !== "SUCCESS") {
-        return {
-          status: result.status,
-          message:
-            "An unexpected error occurred while trying to refund the escrow. Please try again",
-        };
-      }
-
-      return {
-        status: result.status,
-        message: "Escrow funds have been successfully refunded",
-      };
+      return preparedTransaction.toXDR();
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -307,17 +213,19 @@ export class EscrowService {
   }
 
   async getEscrowByEngagementID(
+    contractId: string,
     engagementId: string,
   ): Promise<escrowResponse | ApiResponse> {
     try {
+      const contract = new StellarSDK.Contract(contractId);
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
-      const account = await this.server.getAccount(
+      const account = await this.server.loadAccount(
         this.sourceKeypair.publicKey(),
       );
 
       const operations = [
-        this.contract.call(
+        contract.call(
           "get_escrow_by_id",
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
         ),
@@ -328,7 +236,7 @@ export class EscrowService {
       const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
-        this.server,
+        this.sorobanServer,
         true,
       );
 
@@ -342,7 +250,8 @@ export class EscrowService {
 
       const parseEscrow = parseEngagementData(result);
 
-      return parseEscrow;
+      return parseEscrow
+
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];

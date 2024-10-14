@@ -5,10 +5,9 @@ export function buildTransaction(
   operations: StellarSDK.xdr.Operation[],
   fee: string = StellarSDK.BASE_FEE,
   networkPassphrase: string = StellarSDK.Networks.TESTNET,
-  timeout: number = 300,
+  timeout: number = 30,
 ): StellarSDK.Transaction {
-  const transactionBuilder = new StellarSDK.TransactionBuilder(account, { fee })
-    .setNetworkPassphrase(networkPassphrase)
+  const transactionBuilder = new StellarSDK.TransactionBuilder(account, { fee, networkPassphrase })
     .setTimeout(timeout);
 
   operations.forEach((operation) => {

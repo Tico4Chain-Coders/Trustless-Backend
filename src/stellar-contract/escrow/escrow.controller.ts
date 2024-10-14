@@ -28,15 +28,17 @@ export class EscrowController {
   @Post("initialize-escrow")
   @ApiInitializeEscrow()
   async initializeEscrow(
+    @Body("contractId") contractId: string,
     @Body("engagementId") engagementId: string,
     @Body("description") description: string,
     @Body("issuer") issuer: string,
     @Body("serviceProvider") serviceProvider: string,
     @Body("amount") amount: string,
     @Body("signer") signer: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
       const result = await this.escrowService.initializeEscrow(
+        contractId,
         engagementId,
         description,
         issuer,
@@ -53,15 +55,15 @@ export class EscrowController {
   @Post("fund-escrow")
   @ApiFundEscrow()
   async fundEscrow(
+    @Body("contractId") contractId: string,
     @Body("engagementId") engamentId: string,
     @Body("signer") signer: string,
-    @Body("secretKey") secretKey: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
       const result = await this.escrowService.fundEscrow(
+        contractId,
         engamentId,
         signer,
-        secretKey,
       );
       return result;
     } catch (error) {
@@ -72,15 +74,16 @@ export class EscrowController {
   @Post("complete-escrow")
   @ApiCompleteEscrow()
   async completeEscrow(
+    @Body("contractId") contractId: string,
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
     @Body("secretKey") secretKey: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
       const result = await this.escrowService.completeEscrow(
+        contractId,
         engamentId,
         signer,
-        secretKey,
       );
       return result;
     } catch (error) {
@@ -91,11 +94,12 @@ export class EscrowController {
   @Post("cancel-escrow")
   @ApiCancelEscrow()
   async cancelEscrow(
+    @Body("contractId") contractId: string,
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
-      const result = await this.escrowService.cancelEscrow(engamentId, signer);
+      const result = await this.escrowService.cancelEscrow(contractId, engamentId, signer);
       return result;
     } catch (error) {
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -105,15 +109,15 @@ export class EscrowController {
   @Post("refund-remaining-funds")
   @ApiRefundRemainingFundsEscrow()
   async refundRemainingFunds(
+    @Body("contractId") contractId: string,
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
-    @Body("secretKey") secretKey: string,
-  ): Promise<ApiResponse> {
+  ): Promise<string> {
     try {
       const result = await this.escrowService.refundRemainingFunds(
+        contractId,
         engamentId,
         signer,
-        secretKey,
       );
       return result;
     } catch (error) {
@@ -124,11 +128,12 @@ export class EscrowController {
   @Get("get-escrow-by-engagement-id")
   @ApiGetEscrowByEngagementIdEscrow()
   async getEscrowByEngagementId(
+    @Query("contractId") contractId: string,
     @Query("engagementId") engagementId: string,
   ): Promise<escrowResponse | ApiResponse> {
     try {
       const escrow =
-        await this.escrowService.getEscrowByEngagementID(engagementId);
+        await this.escrowService.getEscrowByEngagementID(contractId, engagementId);
       return escrow;
     } catch (error) {
       throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
