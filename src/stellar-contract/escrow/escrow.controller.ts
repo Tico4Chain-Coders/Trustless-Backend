@@ -35,7 +35,7 @@ export class EscrowController {
     @Body("serviceProvider") serviceProvider: string,
     @Body("amount") amount: string,
     @Body("signer") signer: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.escrowService.initializeEscrow(
         contractId,
@@ -58,7 +58,7 @@ export class EscrowController {
     @Body("contractId") contractId: string,
     @Body("engagementId") engamentId: string,
     @Body("signer") signer: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.escrowService.fundEscrow(
         contractId,
@@ -78,7 +78,7 @@ export class EscrowController {
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
     @Body("secretKey") secretKey: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.escrowService.completeEscrow(
         contractId,
@@ -97,7 +97,7 @@ export class EscrowController {
     @Body("contractId") contractId: string,
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.escrowService.cancelEscrow(contractId, engamentId, signer);
       return result;
@@ -112,7 +112,7 @@ export class EscrowController {
     @Body("contractId") contractId: string,
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const result = await this.escrowService.refundRemainingFunds(
         contractId,

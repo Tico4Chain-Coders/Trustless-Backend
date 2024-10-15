@@ -40,7 +40,7 @@ export class EscrowService {
     serviceProvider: string,
     amount: string,
     signer: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
@@ -66,7 +66,10 @@ export class EscrowService {
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
       await this.sorobanServer.simulateTransaction(preparedTransaction);
 
-      return preparedTransaction.toXDR();
+      return {
+        status: "SUCCESS",
+        unsignedTransaction: preparedTransaction.toXDR()
+      };
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -82,7 +85,7 @@ export class EscrowService {
     contractId: string,
     engagementId: string,
     signer: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
@@ -99,7 +102,10 @@ export class EscrowService {
       const transaction = buildTransaction(account, operations, "1000");
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
-      return preparedTransaction.toXDR();
+      return {
+        status: "SUCCESS",
+        unsignedTransaction: preparedTransaction.toXDR()
+      };
     } catch (error) {
       console.log({ error })
       if (error.message.includes("HostError: Error(Contract, #")) {
@@ -116,7 +122,7 @@ export class EscrowService {
     contractId: string,
     engagementId: string,
     signer: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
@@ -134,7 +140,10 @@ export class EscrowService {
       const transaction = buildTransaction(account, operations);
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
-      return preparedTransaction.toXDR();
+      return {
+        status: "SUCCESS",
+        unsignedTransaction: preparedTransaction.toXDR()
+      };
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -150,7 +159,7 @@ export class EscrowService {
     contractId: string,
     engagementId: string,
     signer: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.server.loadAccount(signer);
@@ -166,7 +175,10 @@ export class EscrowService {
       const transaction = buildTransaction(account, operations);
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
-      return preparedTransaction.toXDR();
+      return {
+        status: "SUCCESS",
+        unsignedTransaction: preparedTransaction.toXDR()
+      };
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
@@ -182,7 +194,7 @@ export class EscrowService {
     contractId: string,
     engagementId: string,
     signer: string,
-  ): Promise<string> {
+  ): Promise<ApiResponse> {
     try {
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.server.loadAccount(signer);
@@ -200,7 +212,10 @@ export class EscrowService {
       const transaction = buildTransaction(account, operations);
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
-      return preparedTransaction.toXDR();
+      return {
+        status: "SUCCESS",
+        unsignedTransaction: preparedTransaction.toXDR()
+      };
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
