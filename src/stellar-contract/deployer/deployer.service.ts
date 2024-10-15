@@ -24,7 +24,6 @@ export class DeployerService {
     async invokeDeployerContract(
         engagementId: string,
         description: string,
-        issuer: string,
         serviceProvider: string,
         amount: string,
         signer: string,
@@ -61,7 +60,7 @@ export class DeployerService {
                             StellarSDK.nativeToScVal([ 
                                 StellarSDK.nativeToScVal(engagementId, { type: "string" }),
                                 StellarSDK.nativeToScVal(description, { type: "string" }),
-                                StellarSDK.Address.fromString(issuer).toScVal(),
+                                StellarSDK.Address.fromString(process.env.ISSUER_ADDRESS).toScVal(),
                                 StellarSDK.Address.fromString(serviceProvider).toScVal(),
                                 scValPrice,
                                 StellarSDK.Address.fromString(signer).toScVal(),

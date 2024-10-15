@@ -13,7 +13,6 @@ export class DeployerController {
     async initializeEscrow(
         @Body("engagementId") engagementId: string,
         @Body("description") description: string,
-        @Body("issuer") issuer: string,
         @Body("serviceProvider") serviceProvider: string,
         @Body("amount") amount: string,
         @Body("signer") signer: string,
@@ -22,7 +21,6 @@ export class DeployerController {
         const result = await this.deployerService.invokeDeployerContract(
             engagementId,
             description,
-            issuer,
             serviceProvider,
             amount,
             signer,
