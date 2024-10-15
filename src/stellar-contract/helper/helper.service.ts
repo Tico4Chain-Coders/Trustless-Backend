@@ -30,7 +30,7 @@ export class HelperService {
     this.contract = new StellarSDK.Contract(process.env.TRUSTLESS_CONTRACT_ID);
   }
 
-  async sendTransaction(signedXdr: string): Promise<StellarSDK.Horizon.HorizonApi.SubmitTransactionResponse> {
+  async sendTransaction(signedXdr: string): Promise<ApiResponse> {
     try {
       const transaction = StellarSDK.TransactionBuilder.fromXDR(
         signedXdr,
@@ -38,7 +38,17 @@ export class HelperService {
       );
       const response = await this.horizonServer.submitTransaction(transaction);
 
-      return response
+      if(!response.successful){
+        return {
+          status: StellarSDK.rpc.Api.GetTransactionStatus.FAILED,
+          message: "The transaction could not be sent to the Stellar network for some unknown reason. Please try again."
+        }
+      }
+      
+      return {
+        status: StellarSDK.rpc.Api.GetTransactionStatus.SUCCESS,
+        message: "The transaction has been successfully sent to the Stellar network."
+      }
     } catch (error) {
       throw new Error(error)
     }

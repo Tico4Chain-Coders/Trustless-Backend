@@ -63,10 +63,9 @@ export class EscrowService {
 
       const transaction = buildTransaction(account, operations);
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
-      await this.sorobanServer.simulateTransaction(preparedTransaction);
 
       return {
-        status: "SUCCESS",
+        status: StellarSDK.rpc.Api.GetTransactionStatus.SUCCESS,
         unsignedTransaction: preparedTransaction.toXDR()
       };
     } catch (error) {
@@ -102,7 +101,7 @@ export class EscrowService {
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
       return {
-        status: "SUCCESS",
+        status: StellarSDK.rpc.Api.GetTransactionStatus.SUCCESS,
         unsignedTransaction: preparedTransaction.toXDR()
       };
     } catch (error) {
@@ -140,7 +139,7 @@ export class EscrowService {
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
       return {
-        status: "SUCCESS",
+        status: StellarSDK.rpc.Api.GetTransactionStatus.SUCCESS,
         unsignedTransaction: preparedTransaction.toXDR()
       };
     } catch (error) {
@@ -175,7 +174,7 @@ export class EscrowService {
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
       return {
-        status: "SUCCESS",
+        status: StellarSDK.rpc.Api.GetTransactionStatus.SUCCESS,
         unsignedTransaction: preparedTransaction.toXDR()
       };
     } catch (error) {
@@ -212,7 +211,7 @@ export class EscrowService {
       const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
 
       return {
-        status: "SUCCESS",
+        status: StellarSDK.rpc.Api.GetTransactionStatus.SUCCESS,
         unsignedTransaction: preparedTransaction.toXDR()
       };
     } catch (error) {

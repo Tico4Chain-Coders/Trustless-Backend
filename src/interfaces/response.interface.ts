@@ -1,7 +1,7 @@
 import * as StellarSDK from "@stellar/stellar-sdk";
 
 export interface ApiResponse {
-  status: StellarSDK.rpc.Api.GetTransactionStatus | string;
+  status: StellarSDK.rpc.Api.GetTransactionStatus;
   unsignedTransaction?: string
   message?: string;
   contractReturnValue?: any;
