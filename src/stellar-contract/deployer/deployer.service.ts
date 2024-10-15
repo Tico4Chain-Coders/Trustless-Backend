@@ -4,25 +4,21 @@ import { randomBytes } from 'crypto';
 import { ApiResponse } from 'src/interfaces/response.interface';
 import { mapErrorCodeToMessage } from 'src/utils/errors.utils';
 import { adjustPricesToMicroUSDC } from 'src/utils/parse.utils';
-import { buildTransaction, signAndSendTransaction } from 'src/utils/transaction.utils';
+import { signAndSendTransaction } from 'src/utils/transaction.utils';
 
 @Injectable()
 export class DeployerService {
 
     private server: StellarSDK.SorobanRpc.Server;
-    private contract: StellarSDK.Contract;
     private sourceKeypair: StellarSDK.Keypair;
     private trustlessContractId: string;
-    private usdcToken: string;
 
     constructor() {
         this.server = new StellarSDK.SorobanRpc.Server(
-            `${process.env.SERVER_URL}`,
+            `${process.env.SOROBAN_SERVER_URL}`,
             { allowHttp: true },
           );
         this.trustlessContractId = process.env.TRUSTLESS_CONTRACT_ID;
-        this.usdcToken = process.env.USDC_SOROBAN_CIRCLE_TOKEN_TEST;
-        this.contract = new StellarSDK.Contract(process.env.TRUSTLESS_CONTRACT_ID);
     }
 
     async invokeDeployerContract(
@@ -34,8 +30,7 @@ export class DeployerService {
         signer: string,
     ): Promise<ApiResponse> {
 
-        const deployerContractAddress: string = 'CCSYONXZDHI2I2EI765E6AGBAVF7CB2PD6U5E6ESEUBLBCXCHAQHMEPY';
-        const wasmHash = '8d8ee0d0a7edfbf273373683507e34f3a8fbea2f4ef99e2237e0e4a95ee784e4';
+        const wasmHash = process.env.WASM_HASH;
         const salt = StellarSDK.nativeToScVal(Buffer.from(randomBytes(32)), {type: 'bytes'})
         const wasmHashBytes = StellarSDK.nativeToScVal(Buffer.from(wasmHash, 'hex'), {type: 'bytes'});
 
@@ -56,10 +51,10 @@ export class DeployerService {
                 auth: [],
                 func: StellarSDK.xdr.HostFunction.hostFunctionTypeInvokeContract(
                     new StellarSDK.xdr.InvokeContractArgs({
-                        contractAddress: new StellarSDK.Address(deployerContractAddress).toScAddress(),
+                        contractAddress: new StellarSDK.Address(this.trustlessContractId).toScAddress(),
                         functionName: 'deploy',
                         args: [
-                            StellarSDK.Address.fromString(deployerContractAddress).toScVal(), 
+                            StellarSDK.Address.fromString(this.trustlessContractId).toScVal(), 
                             wasmHashBytes,
                             salt, 
                             StellarSDK.nativeToScVal('initialize_escrow', { type: 'symbol' }), 
