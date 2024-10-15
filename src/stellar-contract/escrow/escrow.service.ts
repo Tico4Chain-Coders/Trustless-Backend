@@ -13,14 +13,14 @@ import { ApiResponse, escrowResponse } from "src/interfaces/response.interface";
 
 @Injectable()
 export class EscrowService {
-  private server: StellarSDK.Horizon.Server;
+  private horizonServer: StellarSDK.Horizon.Server;
   private sorobanServer: StellarSDK.SorobanRpc.Server;
   private sourceKeypair: StellarSDK.Keypair;
   private trustlessContractId: string;
   private usdcToken: string;
 
   constructor() {
-    this.server = new StellarSDK.Horizon.Server(
+    this.horizonServer = new StellarSDK.Horizon.Server(
       `${process.env.SERVER_URL}`,
       { allowHttp: true },
     );
@@ -162,7 +162,7 @@ export class EscrowService {
   ): Promise<ApiResponse> {
     try {
       const contract = new StellarSDK.Contract(contractId);
-      const account = await this.server.loadAccount(signer);
+      const account = await this.horizonServer.loadAccount(signer);
 
       const operations = [
         contract.call(
@@ -197,7 +197,7 @@ export class EscrowService {
   ): Promise<ApiResponse> {
     try {
       const contract = new StellarSDK.Contract(contractId);
-      const account = await this.server.loadAccount(signer);
+      const account = await this.horizonServer.loadAccount(signer);
 
       const operations = [
         contract.call(
@@ -235,7 +235,7 @@ export class EscrowService {
       const contract = new StellarSDK.Contract(contractId);
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
-      const account = await this.server.loadAccount(
+      const account = await this.horizonServer.loadAccount(
         this.sourceKeypair.publicKey(),
       );
 

@@ -9,7 +9,7 @@ import { ApiResponse } from "src/interfaces/response.interface";
 
 @Injectable()
 export class HelperService {
-  private server: StellarSDK.Horizon.Server;
+  private horizonServer: StellarSDK.Horizon.Server;
   private sorobanServer: StellarSDK.SorobanRpc.Server;
   private contract: StellarSDK.Contract;
   private sourceKeypair: StellarSDK.Keypair;
@@ -17,7 +17,7 @@ export class HelperService {
   private usdcTokenPublic: string;
 
   constructor() {
-    this.server = new StellarSDK.Horizon.Server(
+    this.horizonServer = new StellarSDK.Horizon.Server(
       `${process.env.SERVER_URL}`,
       { allowHttp: true },
     );
@@ -36,7 +36,7 @@ export class HelperService {
         signedXdr,
         StellarSDK.Networks.TESTNET,
       );
-      const response = await this.server.submitTransaction(transaction);
+      const response = await this.horizonServer.submitTransaction(transaction);
 
       return response
     } catch (error) {

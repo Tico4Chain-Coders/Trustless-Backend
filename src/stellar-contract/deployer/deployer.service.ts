@@ -9,12 +9,12 @@ import { signAndSendTransaction } from 'src/utils/transaction.utils';
 @Injectable()
 export class DeployerService {
 
-    private server: StellarSDK.SorobanRpc.Server;
+    private sorobanServer: StellarSDK.SorobanRpc.Server;
     private sourceKeypair: StellarSDK.Keypair;
     private trustlessContractId: string;
 
     constructor() {
-        this.server = new StellarSDK.SorobanRpc.Server(
+        this.sorobanServer = new StellarSDK.SorobanRpc.Server(
             `${process.env.SOROBAN_SERVER_URL}`,
             { allowHttp: true },
           );
@@ -38,7 +38,7 @@ export class DeployerService {
 
             const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
             this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
-            const account = await this.server.getAccount(
+            const account = await this.sorobanServer.getAccount(
                 this.sourceKeypair.publicKey(),
             );
 
@@ -83,7 +83,7 @@ export class DeployerService {
             const result = await signAndSendTransaction(
                 transaction,
                 this.sourceKeypair,
-                this.server,
+                this.sorobanServer,
                 true,
             );
 
