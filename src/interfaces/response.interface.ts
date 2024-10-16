@@ -9,11 +9,11 @@ export interface ApiResponse {
 }
 
 export interface escrowResponse {
-  engagement_id: string;
+  engagementId: string;
   description: string;
   issuer: string;
   signer: string;
-  service_provider: string;
+  serviceProvider: string;
   amount: number;
   balance: number;
   cancelled: boolean;

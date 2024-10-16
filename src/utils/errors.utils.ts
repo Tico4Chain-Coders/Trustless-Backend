@@ -3,7 +3,7 @@ export function mapErrorCodeToMessage(code: string): string {
     case "1":
       return "Escrow not funded";
     case "2":
-      return "Prices cannot be zero";
+      return "Amount cannot be zero";
     case "3":
       return "Escrow already initialized";
     case "4":

@@ -41,11 +41,11 @@ export function parseEngagementData(
       completed,
     } = engagements[1];
     return {
-      engagement_id,
+      engagementId: engagement_id,
       description,
       issuer,
       signer,
-      service_provider,
+      serviceProvider: service_provider,
       amount: microUSDToDecimal(Number(amount)),
       balance: microUSDToDecimal(Number(balance)),
       cancelled,
