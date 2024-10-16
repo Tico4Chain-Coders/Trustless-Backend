@@ -16,7 +16,6 @@ export class EscrowService {
   private horizonServer: StellarSDK.Horizon.Server;
   private sorobanServer: StellarSDK.SorobanRpc.Server;
   private sourceKeypair: StellarSDK.Keypair;
-  private trustlessContractId: string;
   private usdcToken: string;
 
   constructor() {
@@ -28,7 +27,6 @@ export class EscrowService {
       `${process.env.SOROBAN_SERVER_URL}`,
       { allowHttp: true },
     );
-    this.trustlessContractId = process.env.TRUSTLESS_CONTRACT_ID;
     this.usdcToken = process.env.USDC_SOROBAN_CIRCLE_TOKEN_TEST;
   }
 
@@ -93,7 +91,7 @@ export class EscrowService {
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-          StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
+          StellarSDK.Address.fromString(contractId).toScVal(),
         ),
       ];
 
@@ -131,7 +129,7 @@ export class EscrowService {
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-          StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
+          StellarSDK.Address.fromString(contractId).toScVal(),
         ),
       ];
 
@@ -160,7 +158,7 @@ export class EscrowService {
   ): Promise<ApiResponse> {
     try {
       const contract = new StellarSDK.Contract(contractId);
-      const account = await this.horizonServer.loadAccount(signer);
+      const account = await this.sorobanServer.getAccount(signer);
 
       const operations = [
         contract.call(
@@ -203,7 +201,7 @@ export class EscrowService {
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
           StellarSDK.Address.fromString(signer).toScVal(),
           StellarSDK.Address.fromString(this.usdcToken).toScVal(),
-          StellarSDK.Address.fromString(this.trustlessContractId).toScVal(),
+          StellarSDK.Address.fromString(contractId).toScVal(),
         ),
       ];
 
