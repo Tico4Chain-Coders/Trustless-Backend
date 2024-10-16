@@ -1,4 +1,3 @@
-import * as StellarSDK from "@stellar/stellar-sdk";
 import {
   Body,
   Controller,
@@ -11,14 +10,8 @@ import {
 import { HelperService } from "./helper.service";
 import { ApiResponse } from "src/interfaces/response.interface";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
-import {
-  SendTransaction,
-  SetTrustline,
-} from "src/swagger/classes/helper.class";
-import {
-  SendTransactionDefaultValue,
-  SetTrustlineDefaultValue,
-} from "src/swagger/default-values-in-body/helper-default-value";
+import { SetTrustline } from "src/swagger/classes/helper.class";
+import { SetTrustlineDefaultValue } from "src/swagger/default-values-in-body/helper-default-value";
 
 @ApiTags("Helper")
 @Controller("helper")

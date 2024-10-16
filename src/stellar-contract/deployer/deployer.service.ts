@@ -1,6 +1,5 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as StellarSDK from "@stellar/stellar-sdk";
-import { randomBytes } from 'crypto';
 import { EngagementIdException } from 'src/exceptions/engagement-id.exception';
 import { ApiResponse } from 'src/interfaces/response.interface';
 import { mapErrorCodeToMessage } from 'src/utils/errors.utils';

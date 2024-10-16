@@ -75,7 +75,6 @@ export class EscrowController {
     @Body("contractId") contractId: string,
     @Body("engamentId") engamentId: string,
     @Body("signer") signer: string,
-    @Body("secretKey") secretKey: string,
   ): Promise<ApiResponse> {
     try {
       const result = await this.escrowService.completeEscrow(
