@@ -27,9 +27,17 @@ export class DeployerController {
         );
         return result;
         } catch (error) {
-        throw new HttpException(error, HttpStatus.INTERNAL_SERVER_ERROR);
+            if (error instanceof Error && error.message) {
+                throw new HttpException(
+                    { status: HttpStatus.BAD_REQUEST, message: error.message },
+                    HttpStatus.BAD_REQUEST,
+                );
+            }
+    
+            throw new HttpException(
+                { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'An unexpected error occurred' },
+                HttpStatus.INTERNAL_SERVER_ERROR,
+            );
         }
     }
-
-
 }

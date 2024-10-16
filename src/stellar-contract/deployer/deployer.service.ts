@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import * as StellarSDK from "@stellar/stellar-sdk";
-import { EngagementIdException } from 'src/exceptions/engagement-id.exception';
 import { ApiResponse } from 'src/interfaces/response.interface';
 import { mapErrorCodeToMessage } from 'src/utils/errors.utils';
 import { adjustPricesToMicroUSDC } from 'src/utils/parse.utils';
 import { buildInvokeContractOperation, signAndSendTransaction } from 'src/utils/transaction.utils';
+import { validateAddress } from 'src/utils/validations';
 
 @Injectable()
 export class DeployerService {
@@ -28,14 +28,21 @@ export class DeployerService {
         amount: string,
         signer: string,
     ): Promise<ApiResponse> {
-
         const wasmHash = process.env.WASM_HASH;
 
-        if (!engagementId) {
-            throw new EngagementIdException();
-        }
-
         try {
+
+            if (Number(amount) <= 0) {
+                throw new Error('The amount must be greater than 0');
+              }
+          
+              if (!validateAddress(signer)) {
+                throw new Error('The “signer” parameter is not a valid address');
+              }
+          
+              if (!validateAddress(serviceProvider)) {
+                throw new Error('The “serviceProvider” parameter is not a valid address');
+              }
 
             const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
             this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -101,18 +108,15 @@ export class DeployerService {
             
         } catch (error) {
             if (error.message.includes("HostError: Error(Contract, #")) {
-                const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+                const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
                 const errorMessage = mapErrorCodeToMessage(errorCode);
-                throw errorMessage;
+                throw new HttpException(
+                  { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+                  HttpStatus.BAD_REQUEST,
+                );
             }
         
             throw error;
         }
-
-
-
-
     }
-
-
 }

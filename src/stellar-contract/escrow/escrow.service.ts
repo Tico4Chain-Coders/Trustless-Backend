@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import * as StellarSDK from "@stellar/stellar-sdk";
 import { mapErrorCodeToMessage } from "../../utils/errors.utils";
 import {
@@ -10,6 +10,7 @@ import {
   signAndSendTransaction,
 } from "src/utils/transaction.utils";
 import { ApiResponse, escrowResponse } from "src/interfaces/response.interface";
+import { validateAddress } from "src/utils/validations";
 
 @Injectable()
 export class EscrowService {
@@ -39,6 +40,19 @@ export class EscrowService {
     signer: string,
   ): Promise<ApiResponse> {
     try {
+
+      if (Number(amount) <= 0) {
+        throw new Error('The amount must be greater than 0');
+      }
+  
+      if (!validateAddress(signer)) {
+        throw new Error('The “signer” parameter is not a valid address');
+      }
+  
+      if (!validateAddress(serviceProvider)) {
+        throw new Error('The “serviceProvider” parameter is not a valid address');
+      }
+
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
 
@@ -68,9 +82,12 @@ export class EscrowService {
       };
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
-        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
         const errorMessage = mapErrorCodeToMessage(errorCode);
-        throw errorMessage;
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       throw error;
@@ -83,6 +100,13 @@ export class EscrowService {
     signer: string,
   ): Promise<ApiResponse> {
     try {
+      if (!validateAddress(signer)) {
+        throw new Error('The “signer” parameter is not a valid address');
+      }
+  
+      if (!validateAddress(contractId)) {
+        throw new Error('The contractId parameter is not a valid address');
+      }
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
       const operations = [
@@ -103,11 +127,13 @@ export class EscrowService {
         unsignedTransaction: preparedTransaction.toXDR()
       };
     } catch (error) {
-      console.log({ error })
       if (error.message.includes("HostError: Error(Contract, #")) {
-        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
         const errorMessage = mapErrorCodeToMessage(errorCode);
-        throw errorMessage;
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       throw error;
@@ -120,6 +146,13 @@ export class EscrowService {
     signer: string,
   ): Promise<ApiResponse> {
     try {
+      if (!validateAddress(signer)) {
+        throw new Error('The “signer” parameter is not a valid address');
+      }
+  
+      if (!validateAddress(contractId)) {
+        throw new Error('The contractId parameter is not a valid address');
+      }
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
 
@@ -142,9 +175,12 @@ export class EscrowService {
       };
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
-        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
         const errorMessage = mapErrorCodeToMessage(errorCode);
-        throw errorMessage;
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       throw error;
@@ -157,6 +193,13 @@ export class EscrowService {
     signer: string,
   ): Promise<ApiResponse> {
     try {
+      if (!validateAddress(signer)) {
+        throw new Error('The “signer” parameter is not a valid address');
+      }
+  
+      if (!validateAddress(contractId)) {
+        throw new Error('The contractId parameter is not a valid address');
+      }
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
 
@@ -177,9 +220,12 @@ export class EscrowService {
       };
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
-        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
         const errorMessage = mapErrorCodeToMessage(errorCode);
-        throw errorMessage;
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       throw error;
@@ -192,6 +238,13 @@ export class EscrowService {
     signer: string,
   ): Promise<ApiResponse> {
     try {
+      if (!validateAddress(signer)) {
+        throw new Error('The “signer” parameter is not a valid address');
+      }
+  
+      if (!validateAddress(contractId)) {
+        throw new Error('The contractId parameter is not a valid address');
+      }
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.horizonServer.loadAccount(signer);
 
@@ -214,9 +267,12 @@ export class EscrowService {
       };
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
-        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
         const errorMessage = mapErrorCodeToMessage(errorCode);
-        throw errorMessage;
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       throw error;
@@ -227,7 +283,10 @@ export class EscrowService {
     contractId: string,
     engagementId: string,
   ): Promise<escrowResponse | ApiResponse> {
-    try {
+    try {  
+      if (!validateAddress(contractId)) {
+        throw new Error('The contractId parameter is not a valid address');
+      }
       const contract = new StellarSDK.Contract(contractId);
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
@@ -265,9 +324,12 @@ export class EscrowService {
 
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
-        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)[1];
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
         const errorMessage = mapErrorCodeToMessage(errorCode);
-        throw errorMessage;
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
       }
 
       throw error;

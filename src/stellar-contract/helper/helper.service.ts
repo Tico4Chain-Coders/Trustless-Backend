@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import * as StellarSDK from "@stellar/stellar-sdk";
 import { parseBalanceByAddressData } from "src/utils/parse.utils";
 import {
@@ -6,6 +6,7 @@ import {
   signAndSendTransaction,
 } from "src/utils/transaction.utils";
 import { ApiResponse } from "src/interfaces/response.interface";
+import { mapErrorCodeToMessage } from "src/utils/errors.utils";
 
 @Injectable()
 export class HelperService {
@@ -50,7 +51,16 @@ export class HelperService {
         message: "The transaction has been successfully sent to the Stellar network."
       }
     } catch (error) {
-      throw new Error(error)
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    
+      throw error;
     }
   }
 
@@ -89,7 +99,15 @@ export class HelperService {
         message: "The trust line has been correctly defined in the USDC token",
       };
     } catch (error) {
-      console.log("Error:", error);
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       throw error;
     }
   }
@@ -127,10 +145,15 @@ export class HelperService {
 
       return { allowance: parseAllowance };
     } catch (error) {
-      console.error(
-        "An error occurred while trying to obtain the allowance of an address:",
-        error,
-      );
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
       throw error;
     }
   }
