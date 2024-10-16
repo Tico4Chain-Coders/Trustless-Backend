@@ -4,7 +4,8 @@ export interface ApiResponse {
   status: StellarSDK.rpc.Api.GetTransactionStatus;
   unsignedTransaction?: string
   message?: string;
-  contractReturnValue?: any;
+  contract_id?: string;
+  engagement_id?: string;
 }
 
 export interface escrowResponse {

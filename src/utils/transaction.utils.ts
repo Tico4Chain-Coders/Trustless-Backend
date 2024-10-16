@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import * as StellarSDK from "stellar-sdk";
 
 export function buildTransaction(
@@ -15,6 +16,37 @@ export function buildTransaction(
   });
 
   return transactionBuilder.build();
+}
+
+export function buildInvokeContractOperation(
+  deployerContractAddress: string,
+  wasmHash: string,
+  operationFunc: string,
+  initFunc: string,
+  operations: any[]
+): StellarSDK.xdr.Operation {
+
+  const wasmHashBytes = StellarSDK.nativeToScVal(Buffer.from(wasmHash, 'hex'), {type: 'bytes'});
+  const salt = StellarSDK.nativeToScVal(Buffer.from(randomBytes(32)), {type: 'bytes'})
+
+  const operation = StellarSDK.Operation.invokeHostFunction({
+    auth: [],
+    func: StellarSDK.xdr.HostFunction.hostFunctionTypeInvokeContract(
+      new StellarSDK.xdr.InvokeContractArgs({
+        contractAddress: new StellarSDK.Address(deployerContractAddress).toScAddress(),
+        functionName: operationFunc,
+        args: [
+          StellarSDK.Address.fromString(deployerContractAddress).toScVal(), 
+          wasmHashBytes,
+          salt, 
+          StellarSDK.nativeToScVal(initFunc, { type: 'symbol' }), 
+          StellarSDK.nativeToScVal(operations, { type: 'vec' }) // Aquí usas el array operations directamente
+        ]
+      })
+    )
+  });
+
+  return operation;
 }
 
 export async function signAndSendTransaction(
