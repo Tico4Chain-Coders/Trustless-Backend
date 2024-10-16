@@ -73,7 +73,7 @@ export class EscrowController {
   @ApiCompleteEscrow()
   async completeEscrow(
     @Body("contractId") contractId: string,
-    @Body("engamentId") engamentId: string,
+    @Body("engagementId") engamentId: string,
     @Body("signer") signer: string,
   ): Promise<ApiResponse> {
     try {
@@ -92,7 +92,7 @@ export class EscrowController {
   @ApiCancelEscrow()
   async cancelEscrow(
     @Body("contractId") contractId: string,
-    @Body("engamentId") engamentId: string,
+    @Body("engagementId") engamentId: string,
     @Body("signer") signer: string,
   ): Promise<ApiResponse> {
     try {
@@ -107,7 +107,7 @@ export class EscrowController {
   @ApiRefundRemainingFundsEscrow()
   async refundRemainingFunds(
     @Body("contractId") contractId: string,
-    @Body("engamentId") engamentId: string,
+    @Body("engagementId") engamentId: string,
     @Body("signer") signer: string,
   ): Promise<ApiResponse> {
     try {
