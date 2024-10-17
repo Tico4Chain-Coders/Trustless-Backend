@@ -10,8 +10,16 @@ import {
 import { HelperService } from "./helper.service";
 import { ApiResponse } from "src/interfaces/response.interface";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
-import { SetTrustline } from "src/swagger/classes/helper.class";
-import { SetTrustlineDefaultValue } from "src/swagger/default-values-in-body/helper-default-value";
+import {
+  SendTransaction,
+  SetTrustline,
+} from "src/swagger/classes/helper.class";
+import {
+  SendTransactionDefaultValue,
+  SetTrustlineDefaultValue,
+} from "src/swagger/default-values-in-body/helper-default-value";
+import { DisabledEndpoint } from "src/swagger/decorators/disabled-endpoint";
+import { ApiSendTransaction, ApiSetTrustline } from "src/swagger";
 
 @ApiTags("Helper")
 @Controller("helper")
@@ -19,7 +27,10 @@ export class HelperController {
   constructor(private readonly helperService: HelperService) {}
 
   @Post("send-transaction")
-  async sendTransaction(@Body("signedXdr") signedXdr: string): Promise<ApiResponse> {
+  @ApiSendTransaction()
+  async sendTransaction(
+    @Body("signedXdr") signedXdr: string,
+  ): Promise<ApiResponse> {
     try {
       const transactionSigned =
         await this.helperService.sendTransaction(signedXdr);
@@ -27,43 +38,48 @@ export class HelperController {
     } catch (error) {
       if (error instanceof Error && error.message) {
         throw new HttpException(
-            { status: HttpStatus.BAD_REQUEST, message: error.message },
-            HttpStatus.BAD_REQUEST,
+          { status: HttpStatus.BAD_REQUEST, message: error.message },
+          HttpStatus.BAD_REQUEST,
         );
-    }
+      }
 
-    throw new HttpException(
-        { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'An unexpected error occurred' },
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: "An unexpected error occurred",
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+      );
     }
   }
 
   @Get("get-allowance")
-  async getAllowance(
-    @Query("from") from: string,
-    @Query("spender") spender: string,
-  ): Promise<{ allowance: number }> {
+  @DisabledEndpoint()
+  async getAllowance() /*: Promise<{ allowance: number }>*/ {
+    // @Query("spender") spender: string, // @Query("from") from: string,
     try {
-      const allowance = await this.helperService.getAllowance(from, spender);
-      return allowance;
+      // const allowance = await this.helperService.getAllowance(from, spender);
+      // return allowance;
     } catch (error) {
       if (error instanceof Error && error.message) {
         throw new HttpException(
-            { status: HttpStatus.BAD_REQUEST, message: error.message },
-            HttpStatus.BAD_REQUEST,
+          { status: HttpStatus.BAD_REQUEST, message: error.message },
+          HttpStatus.BAD_REQUEST,
         );
-    }
+      }
 
-    throw new HttpException(
-        { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'An unexpected error occurred' },
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: "An unexpected error occurred",
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+      );
     }
   }
 
   @Post("set-trustline")
-  @ApiBody({ type: SetTrustline, examples: SetTrustlineDefaultValue })
+  @ApiSetTrustline()
   async setTrustline(
     @Body("sourceSecretKey") sourceSecretKey: string,
   ): Promise<ApiResponse> {
@@ -74,15 +90,18 @@ export class HelperController {
     } catch (error) {
       if (error instanceof Error && error.message) {
         throw new HttpException(
-            { status: HttpStatus.BAD_REQUEST, message: error.message },
-            HttpStatus.BAD_REQUEST,
+          { status: HttpStatus.BAD_REQUEST, message: error.message },
+          HttpStatus.BAD_REQUEST,
         );
-    }
+      }
 
-    throw new HttpException(
-        { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'An unexpected error occurred' },
+      throw new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          message: "An unexpected error occurred",
+        },
         HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+      );
     }
   }
 }

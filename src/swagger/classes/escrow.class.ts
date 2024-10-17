@@ -10,13 +10,13 @@ export class InitializeEscrow {
 export class FundEscrow {
   engamentId: string;
   signer: string;
-  secretKey: string;
+  contractId: string;
 }
 
 export class CompleteEscrow {
   engamentId: string;
   signer: string;
-  secretKey: string;
+  contractId: string;
 }
 
 export class CancelEscrow {
@@ -27,5 +27,11 @@ export class CancelEscrow {
 export class RefundRemainingFunds {
   engamentId: string;
   signer: string;
-  secretKey: string;
+  contractId: string;
+}
+
+export class ClaimEscrowEarnings {
+  engamentId: string;
+  signer: string;
+  contractId: string;
 }

@@ -39,17 +39,19 @@ export class HelperService {
       );
       const response = await this.horizonServer.submitTransaction(transaction);
 
-      if(!response.successful){
+      if (!response.successful) {
         return {
           status: StellarSDK.rpc.Api.GetTransactionStatus.FAILED,
-          message: "The transaction could not be sent to the Stellar network for some unknown reason. Please try again."
-        }
+          message:
+            "The transaction could not be sent to the Stellar network for some unknown reason. Please try again.",
+        };
       }
-      
+
       return {
         status: StellarSDK.rpc.Api.GetTransactionStatus.SUCCESS,
-        message: "The transaction has been successfully sent to the Stellar network."
-      }
+        message:
+          "The transaction has been successfully sent to the Stellar network.",
+      };
     } catch (error) {
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
@@ -59,7 +61,7 @@ export class HelperService {
           HttpStatus.BAD_REQUEST,
         );
       }
-    
+
       throw error;
     }
   }

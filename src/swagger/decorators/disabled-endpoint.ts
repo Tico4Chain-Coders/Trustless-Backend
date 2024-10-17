@@ -9,8 +9,8 @@ import { ApiOperation } from "@nestjs/swagger";
 export const DisabledEndpoint = () => {
   return applyDecorators(
     ApiOperation({
-      summary: "Este endpoint está deshabilitado",
-      description: "Este endpoint no está disponible en este momento.",
+      summary: "Disabled ⚠️",
+      description: "This Endpoint is disabled",
     }),
     UseInterceptors({
       intercept: () => {

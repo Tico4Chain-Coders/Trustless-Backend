@@ -8,8 +8,10 @@ export function buildTransaction(
   networkPassphrase: string = StellarSDK.Networks.TESTNET,
   timeout: number = 30,
 ): StellarSDK.Transaction {
-  const transactionBuilder = new StellarSDK.TransactionBuilder(account, { fee, networkPassphrase })
-    .setTimeout(timeout);
+  const transactionBuilder = new StellarSDK.TransactionBuilder(account, {
+    fee,
+    networkPassphrase,
+  }).setTimeout(timeout);
 
   operations.forEach((operation) => {
     transactionBuilder.addOperation(operation);
@@ -23,27 +25,32 @@ export function buildInvokeContractOperation(
   wasmHash: string,
   operationFunc: string,
   initFunc: string,
-  operations: any[]
+  operations: any[],
 ): StellarSDK.xdr.Operation {
-
-  const wasmHashBytes = StellarSDK.nativeToScVal(Buffer.from(wasmHash, 'hex'), {type: 'bytes'});
-  const salt = StellarSDK.nativeToScVal(Buffer.from(randomBytes(32)), {type: 'bytes'})
+  const wasmHashBytes = StellarSDK.nativeToScVal(Buffer.from(wasmHash, "hex"), {
+    type: "bytes",
+  });
+  const salt = StellarSDK.nativeToScVal(Buffer.from(randomBytes(32)), {
+    type: "bytes",
+  });
 
   const operation = StellarSDK.Operation.invokeHostFunction({
     auth: [],
     func: StellarSDK.xdr.HostFunction.hostFunctionTypeInvokeContract(
       new StellarSDK.xdr.InvokeContractArgs({
-        contractAddress: new StellarSDK.Address(deployerContractAddress).toScAddress(),
+        contractAddress: new StellarSDK.Address(
+          deployerContractAddress,
+        ).toScAddress(),
         functionName: operationFunc,
         args: [
-          StellarSDK.Address.fromString(deployerContractAddress).toScVal(), 
+          StellarSDK.Address.fromString(deployerContractAddress).toScVal(),
           wasmHashBytes,
-          salt, 
-          StellarSDK.nativeToScVal(initFunc, { type: 'symbol' }), 
-          StellarSDK.nativeToScVal(operations, { type: 'vec' }) // Aquí usas el array operations directamente
-        ]
-      })
-    )
+          salt,
+          StellarSDK.nativeToScVal(initFunc, { type: "symbol" }),
+          StellarSDK.nativeToScVal(operations, { type: "vec" }), // Aquí usas el array operations directamente
+        ],
+      }),
+    ),
   });
 
   return operation;
