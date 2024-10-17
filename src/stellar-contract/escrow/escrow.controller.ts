@@ -27,44 +27,44 @@ import { DisabledEndpoint } from "src/swagger/decorators/disabled-endpoint";
 export class EscrowController {
   constructor(private readonly escrowService: EscrowService) {}
 
-  @Post("initialize-escrow")
-  @DisabledEndpoint()
+  // @Post("initialize-escrow")
+  // @DisabledEndpoint()
   // @ApiInitializeEscrow()
-  async initializeEscrow(
-    @Body("contractId") contractId: string,
-    @Body("engagementId") engagementId: string,
-    @Body("description") description: string,
-    @Body("serviceProvider") serviceProvider: string,
-    @Body("amount") amount: string,
-    @Body("signer") signer: string,
-  ): Promise<ApiResponse> {
-    try {
-      const result = await this.escrowService.initializeEscrow(
-        contractId,
-        engagementId,
-        description,
-        serviceProvider,
-        amount,
-        signer,
-      );
-      return result;
-    } catch (error) {
-      if (error instanceof Error && error.message) {
-        throw new HttpException(
-          { status: HttpStatus.BAD_REQUEST, message: error.message },
-          HttpStatus.BAD_REQUEST,
-        );
-      }
+  // async initializeEscrow(
+  //   @Body("contractId") contractId: string,
+  //   @Body("engagementId") engagementId: string,
+  //   @Body("description") description: string,
+  //   @Body("serviceProvider") serviceProvider: string,
+  //   @Body("amount") amount: string,
+  //   @Body("signer") signer: string,
+  // ): Promise<ApiResponse> {
+  //   try {
+  //     const result = await this.escrowService.initializeEscrow(
+  //       contractId,
+  //       engagementId,
+  //       description,
+  //       serviceProvider,
+  //       amount,
+  //       signer,
+  //     );
+  //     return result;
+  //   } catch (error) {
+  //     if (error instanceof Error && error.message) {
+  //       throw new HttpException(
+  //         { status: HttpStatus.BAD_REQUEST, message: error.message },
+  //         HttpStatus.BAD_REQUEST,
+  //       );
+  //     }
 
-      throw new HttpException(
-        {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          message: "An unexpected error occurred",
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
+  //     throw new HttpException(
+  //       {
+  //         status: HttpStatus.INTERNAL_SERVER_ERROR,
+  //         message: "An unexpected error occurred",
+  //       },
+  //       HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
 
   @Post("fund-escrow")
   @ApiFundEscrow()
