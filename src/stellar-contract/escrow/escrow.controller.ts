@@ -118,6 +118,35 @@ export class EscrowController {
     }
   }
 
+  @Post("claim-escrow-earnings")
+  // @ApiClaimEscrowEarnings()
+  async claimEscrowEarnings(
+    @Body("contractId") contractId: string,
+    @Body("engagementId") engamentId: string,
+    @Body("serviceProvider") serviceProvider: string,
+  ): Promise<ApiResponse> {
+    try {
+      const result = await this.escrowService.claimEscrowEarnings(
+        contractId,
+        engamentId,
+        serviceProvider,
+      );
+      return result;
+    } catch (error) {
+      if (error instanceof Error && error.message) {
+        throw new HttpException(
+            { status: HttpStatus.BAD_REQUEST, message: error.message },
+            HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      throw new HttpException(
+          { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'An unexpected error occurred' },
+          HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Post("cancel-escrow")
   @ApiCancelEscrow()
   async cancelEscrow(

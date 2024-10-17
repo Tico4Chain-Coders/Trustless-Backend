@@ -187,6 +187,53 @@ export class EscrowService {
     }
   }
 
+  async claimEscrowEarnings(
+    contractId: string,
+    engagementId: string,
+    serviceProvider: string,
+  ): Promise<ApiResponse> {
+    try {
+      if (!validateAddress(serviceProvider)) {
+        throw new Error('The "serviceProvider" parameter is not a valid address');
+      }
+  
+      if (!validateAddress(contractId)) {
+        throw new Error('The contractId parameter is not a valid address');
+      }
+      const contract = new StellarSDK.Contract(contractId);
+      const account = await this.sorobanServer.getAccount(serviceProvider);
+
+      const operations = [
+        contract.call(
+          "claim_escrow_earnings",
+          StellarSDK.nativeToScVal(engagementId, { type: "string" }),
+          StellarSDK.Address.fromString(serviceProvider).toScVal(),
+          StellarSDK.Address.fromString(this.usdcToken).toScVal(),
+          StellarSDK.Address.fromString(contractId).toScVal(),
+        ),
+      ];
+
+      const transaction = buildTransaction(account, operations);
+      const preparedTransaction = await this.sorobanServer.prepareTransaction(transaction);
+
+      return {
+        status: StellarSDK.rpc.Api.GetTransactionStatus.SUCCESS,
+        unsignedTransaction: preparedTransaction.toXDR()
+      };
+    } catch (error) {
+      if (error.message.includes("HostError: Error(Contract, #")) {
+        const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
+        const errorMessage = mapErrorCodeToMessage(errorCode);
+        throw new HttpException(
+          { status: HttpStatus.BAD_REQUEST, message: errorMessage },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      throw error;
+    }
+  }
+
   async cancelEscrow(
     contractId: string,
     engagementId: string,
