@@ -237,24 +237,24 @@ export class EscrowService {
   async cancelEscrow(
     contractId: string,
     engagementId: string,
-    signer: string,
+    serviceProvider: string,
   ): Promise<ApiResponse> {
     try {
-      if (!validateAddress(signer)) {
-        throw new Error('The “signer” parameter is not a valid address');
+      if (!validateAddress(serviceProvider)) {
+        throw new Error('The "serviceProvider" parameter is not a valid address');
       }
   
       if (!validateAddress(contractId)) {
         throw new Error('The contractId parameter is not a valid address');
       }
       const contract = new StellarSDK.Contract(contractId);
-      const account = await this.sorobanServer.getAccount(signer);
+      const account = await this.sorobanServer.getAccount(serviceProvider);
 
       const operations = [
         contract.call(
           "cancel_escrow",
           StellarSDK.nativeToScVal(engagementId, { type: "string" }),
-          StellarSDK.Address.fromString(signer).toScVal(),
+          StellarSDK.Address.fromString(serviceProvider).toScVal(),
         ),
       ];
 

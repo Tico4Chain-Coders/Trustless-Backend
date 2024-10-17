@@ -23,7 +23,7 @@ export function mapErrorCodeToMessage(code: string): string {
     case "11":
       return "The signer does not have sufficient funds to complete this escrow";
     case "12":
-      return "Only the signer can cancel the escrow";
+      return "Only the service provider can cancel the escrow";
     case "13":
       return "The escrow has already been cancelled";
     case "14":

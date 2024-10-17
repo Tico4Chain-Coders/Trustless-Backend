@@ -152,10 +152,10 @@ export class EscrowController {
   async cancelEscrow(
     @Body("contractId") contractId: string,
     @Body("engagementId") engamentId: string,
-    @Body("signer") signer: string,
+    @Body("serviceProvider") serviceProvider: string,
   ): Promise<ApiResponse> {
     try {
-      const result = await this.escrowService.cancelEscrow(contractId, engamentId, signer);
+      const result = await this.escrowService.cancelEscrow(contractId, engamentId, serviceProvider);
       return result;
     } catch (error) {
       if (error instanceof Error && error.message) {
