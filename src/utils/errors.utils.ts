@@ -36,6 +36,14 @@ export function mapErrorCodeToMessage(code: string): string {
       return "The contract has no balance to repay";
     case "18":
       return "Escrow not found";
+    case "19":
+      return "Only the service provider can claim escrow earnings";
+    case "20":
+      return "The escrow must be completed to claim earnings";
+    case "21":
+      return "The escrow balance must be equal to the amount of earnings defined for the escrow";
+    case "22":
+      return "The contract does not have sufficient funds";
     default:
       return "Unknown error occurred in the contract";
   }
