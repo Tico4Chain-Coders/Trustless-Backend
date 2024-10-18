@@ -17,10 +17,9 @@ import {
   ApiCompleteEscrow,
   ApiFundEscrow,
   ApiGetEscrowByEngagementIdEscrow,
-  ApiInitializeEscrow,
   ApiRefundRemainingFundsEscrow,
 } from "src/swagger";
-import { DisabledEndpoint } from "src/swagger/decorators/disabled-endpoint";
+import { EscrowOperationWithServiceProviderDto, EscrowOperationWithSignerDto, GetEscrowByEngagementIdDto } from "./Dto/escrow.dto";
 
 @ApiTags("Escrow")
 @Controller("escrow")
@@ -69,14 +68,13 @@ export class EscrowController {
   @Post("fund-escrow")
   @ApiFundEscrow()
   async fundEscrow(
-    @Body("contractId") contractId: string,
-    @Body("engagementId") engamentId: string,
-    @Body("signer") signer: string,
+    @Body() escrowOperationWithSignerDto: EscrowOperationWithSignerDto
   ): Promise<ApiResponse> {
+    const { contractId, engagementId, signer } = escrowOperationWithSignerDto;
     try {
       const result = await this.escrowService.fundEscrow(
         contractId,
-        engamentId,
+        engagementId,
         signer,
       );
       return result;
@@ -101,14 +99,13 @@ export class EscrowController {
   @Post("complete-escrow")
   @ApiCompleteEscrow()
   async completeEscrow(
-    @Body("contractId") contractId: string,
-    @Body("engagementId") engamentId: string,
-    @Body("signer") signer: string,
+    @Body() escrowOperationWithSignerDto: EscrowOperationWithSignerDto
   ): Promise<ApiResponse> {
+    const { contractId, engagementId, signer } = escrowOperationWithSignerDto;
     try {
       const result = await this.escrowService.completeEscrow(
         contractId,
-        engamentId,
+        engagementId,
         signer,
       );
       return result;
@@ -133,14 +130,13 @@ export class EscrowController {
   @Post("claim-escrow-earnings")
   @ApiClaimEscrowEarnings()
   async claimEscrowEarnings(
-    @Body("contractId") contractId: string,
-    @Body("engagementId") engamentId: string,
-    @Body("serviceProvider") serviceProvider: string,
+    @Body() escrowOperationWithServiceProviderDto: EscrowOperationWithServiceProviderDto
   ): Promise<ApiResponse> {
+    const { contractId, engagementId, serviceProvider } = escrowOperationWithServiceProviderDto;
     try {
       const result = await this.escrowService.claimEscrowEarnings(
         contractId,
-        engamentId,
+        engagementId,
         serviceProvider,
       );
       return result;
@@ -165,14 +161,13 @@ export class EscrowController {
   @Post("cancel-escrow")
   @ApiCancelEscrow()
   async cancelEscrow(
-    @Body("contractId") contractId: string,
-    @Body("engagementId") engamentId: string,
-    @Body("serviceProvider") serviceProvider: string,
+    @Body() escrowOperationWithServiceProviderDto: EscrowOperationWithServiceProviderDto
   ): Promise<ApiResponse> {
+    const { contractId, engagementId, serviceProvider } = escrowOperationWithServiceProviderDto;
     try {
       const result = await this.escrowService.cancelEscrow(
         contractId,
-        engamentId,
+        engagementId,
         serviceProvider,
       );
       return result;
@@ -197,14 +192,13 @@ export class EscrowController {
   @Post("refund-remaining-funds")
   @ApiRefundRemainingFundsEscrow()
   async refundRemainingFunds(
-    @Body("contractId") contractId: string,
-    @Body("engagementId") engamentId: string,
-    @Body("signer") signer: string,
+    @Body() escrowOperationWithSignerDto: EscrowOperationWithSignerDto
   ): Promise<ApiResponse> {
+    const { contractId, engagementId, signer } = escrowOperationWithSignerDto;
     try {
       const result = await this.escrowService.refundRemainingFunds(
         contractId,
-        engamentId,
+        engagementId,
         signer,
       );
       return result;
@@ -229,9 +223,9 @@ export class EscrowController {
   @Get("get-escrow-by-engagement-id")
   @ApiGetEscrowByEngagementIdEscrow()
   async getEscrowByEngagementId(
-    @Query("contractId") contractId: string,
-    @Query("engagementId") engagementId: string,
+    @Query() getEscrowByEngagementIdDto: GetEscrowByEngagementIdDto
   ): Promise<escrowResponse | ApiResponse> {
+    const { contractId, engagementId } = getEscrowByEngagementIdDto;
     try {
       const escrow = await this.escrowService.getEscrowByEngagementID(
         contractId,

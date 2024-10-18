@@ -40,20 +40,6 @@ export class EscrowService {
     signer: string,
   ): Promise<ApiResponse> {
     try {
-      if (Number(amount) <= 0) {
-        throw new Error("The amount must be greater than 0");
-      }
-
-      if (!validateAddress(signer)) {
-        throw new Error("The “signer” parameter is not a valid address");
-      }
-
-      if (!validateAddress(serviceProvider)) {
-        throw new Error(
-          "The “serviceProvider” parameter is not a valid address",
-        );
-      }
-
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
 
@@ -102,13 +88,6 @@ export class EscrowService {
     signer: string,
   ): Promise<ApiResponse> {
     try {
-      if (!validateAddress(signer)) {
-        throw new Error("The “signer” parameter is not a valid address");
-      }
-
-      if (!validateAddress(contractId)) {
-        throw new Error("The contractId parameter is not a valid address");
-      }
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
       const operations = [
@@ -149,13 +128,6 @@ export class EscrowService {
     signer: string,
   ): Promise<ApiResponse> {
     try {
-      if (!validateAddress(signer)) {
-        throw new Error("The “signer” parameter is not a valid address");
-      }
-
-      if (!validateAddress(contractId)) {
-        throw new Error("The contractId parameter is not a valid address");
-      }
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(signer);
 
@@ -197,15 +169,6 @@ export class EscrowService {
     serviceProvider: string,
   ): Promise<ApiResponse> {
     try {
-      if (!validateAddress(serviceProvider)) {
-        throw new Error(
-          'The "serviceProvider" parameter is not a valid address',
-        );
-      }
-
-      if (!validateAddress(contractId)) {
-        throw new Error("The contractId parameter is not a valid address");
-      }
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(serviceProvider);
 
@@ -247,15 +210,6 @@ export class EscrowService {
     serviceProvider: string,
   ): Promise<ApiResponse> {
     try {
-      if (!validateAddress(serviceProvider)) {
-        throw new Error(
-          'The "serviceProvider" parameter is not a valid address',
-        );
-      }
-
-      if (!validateAddress(contractId)) {
-        throw new Error("The contractId parameter is not a valid address");
-      }
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.sorobanServer.getAccount(serviceProvider);
 
@@ -295,13 +249,6 @@ export class EscrowService {
     signer: string,
   ): Promise<ApiResponse> {
     try {
-      if (!validateAddress(signer)) {
-        throw new Error("The “signer” parameter is not a valid address");
-      }
-
-      if (!validateAddress(contractId)) {
-        throw new Error("The contractId parameter is not a valid address");
-      }
       const contract = new StellarSDK.Contract(contractId);
       const account = await this.horizonServer.loadAccount(signer);
 
@@ -336,15 +283,12 @@ export class EscrowService {
       throw error;
     }
   }
-
+  
   async getEscrowByEngagementID(
     contractId: string,
     engagementId: string,
   ): Promise<escrowResponse | ApiResponse> {
     try {
-      if (!validateAddress(contractId)) {
-        throw new Error("The contractId parameter is not a valid address");
-      }
       const contract = new StellarSDK.Contract(contractId);
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
