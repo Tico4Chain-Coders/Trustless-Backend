@@ -31,22 +31,7 @@ export class DeployerService {
     signer: string,
   ): Promise<ApiResponse> {
     const wasmHash = process.env.WASM_HASH;
-
     try {
-      if (Number(amount) <= 0) {
-        throw new Error("The amount must be greater than 0");
-      }
-
-      if (!validateAddress(signer)) {
-        throw new Error("The “signer” parameter is not a valid address");
-      }
-
-      if (!validateAddress(serviceProvider)) {
-        throw new Error(
-          "The “serviceProvider” parameter is not a valid address",
-        );
-      }
-
       const walletApiSecretKey = process.env.API_SECRET_KEY_WALLET;
       this.sourceKeypair = StellarSDK.Keypair.fromSecret(walletApiSecretKey);
       const account = await this.sorobanServer.getAccount(

@@ -9,6 +9,7 @@ import { ApiResponse } from "src/interfaces/response.interface";
 import { ApiInvokeContract } from "src/swagger";
 import { DeployerService } from "./deployer.service";
 import { ApiTags } from "@nestjs/swagger";
+import { InvokeDeployerContractDto } from "./Dto/deployer.dto";
 
 @ApiTags("Deployer")
 @Controller("deployer")
@@ -18,12 +19,9 @@ export class DeployerController {
   @Post("invoke-deployer-contract")
   @ApiInvokeContract()
   async invokeContract(
-    @Body("engagementId") engagementId: string,
-    @Body("description") description: string,
-    @Body("serviceProvider") serviceProvider: string,
-    @Body("amount") amount: string,
-    @Body("signer") signer: string,
+    @Body() invokeDeployerContractDto: InvokeDeployerContractDto
   ): Promise<ApiResponse> {
+    const { engagementId, description, serviceProvider, amount, signer } = invokeDeployerContractDto;
     try {
       const result = await this.deployerService.invokeDeployerContract(
         engagementId,
