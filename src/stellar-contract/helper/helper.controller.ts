@@ -9,17 +9,10 @@ import {
 } from "@nestjs/common";
 import { HelperService } from "./helper.service";
 import { ApiResponse } from "src/interfaces/response.interface";
-import { ApiBody, ApiTags } from "@nestjs/swagger";
-import {
-  SendTransaction,
-  SetTrustline,
-} from "src/swagger/classes/helper.class";
-import {
-  SendTransactionDefaultValue,
-  SetTrustlineDefaultValue,
-} from "src/swagger/default-values-in-body/helper-default-value";
+import { ApiTags } from "@nestjs/swagger";
 import { DisabledEndpoint } from "src/swagger/decorators/disabled-endpoint";
 import { ApiSendTransaction, ApiSetTrustline } from "src/swagger";
+import { SendTransactionDto, SetTrustlineDto } from "./Dto/helper.dto";
 
 @ApiTags("Helper")
 @Controller("helper")
@@ -29,8 +22,9 @@ export class HelperController {
   @Post("send-transaction")
   @ApiSendTransaction()
   async sendTransaction(
-    @Body("signedXdr") signedXdr: string,
+    @Body() sendTransactionDto: SendTransactionDto,
   ): Promise<ApiResponse> {
+    const { signedXdr } = sendTransactionDto;
     try {
       const transactionSigned =
         await this.helperService.sendTransaction(signedXdr);
@@ -81,8 +75,9 @@ export class HelperController {
   @Post("set-trustline")
   @ApiSetTrustline()
   async setTrustline(
-    @Body("sourceSecretKey") sourceSecretKey: string,
+    @Body() setTrustlineDto: SetTrustlineDto,
   ): Promise<ApiResponse> {
+    const { sourceSecretKey } = setTrustlineDto;
     try {
       const result =
         await this.helperService.establishTrustline(sourceSecretKey);
