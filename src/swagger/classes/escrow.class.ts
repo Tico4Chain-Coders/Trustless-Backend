@@ -8,30 +8,30 @@ export class InitializeEscrow {
 }
 
 export class FundEscrow {
-  engamentId: string;
+  engagementId: string;
   signer: string;
   contractId: string;
 }
 
 export class CompleteEscrow {
-  engamentId: string;
+  engagementId: string;
   signer: string;
   contractId: string;
 }
 
 export class CancelEscrow {
-  engamentId: string;
+  engagementId: string;
   signer: string;
 }
 
 export class RefundRemainingFunds {
-  engamentId: string;
+  engagementId: string;
   signer: string;
   contractId: string;
 }
 
 export class ClaimEscrowEarnings {
-  engamentId: string;
+  engagementId: string;
   signer: string;
   contractId: string;
 }

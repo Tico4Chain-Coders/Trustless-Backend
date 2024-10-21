@@ -14,7 +14,7 @@ export const InitializeEscrowDefaultValue = {
 export const FundEscrowDefaultValue = {
   default: {
     value: {
-      engamentId: "",
+      engagementId: "",
       signer: "",
       contractId: "",
     },
@@ -24,7 +24,7 @@ export const FundEscrowDefaultValue = {
 export const CompleteEscrowDefaultValue = {
   default: {
     value: {
-      engamentId: "",
+      engagementId: "",
       signer: "",
       contractId: "",
     },
@@ -34,7 +34,7 @@ export const CompleteEscrowDefaultValue = {
 export const CancelEscrowDefaultValue = {
   default: {
     value: {
-      engamentId: "",
+      engagementId: "",
       signer: "",
       contractId: "",
     },
@@ -44,7 +44,7 @@ export const CancelEscrowDefaultValue = {
 export const RefundRemainingFundsDefaultValue = {
   default: {
     value: {
-      engamentId: "",
+      engagementId: "",
       signer: "",
       contractId: "",
     },
@@ -54,7 +54,7 @@ export const RefundRemainingFundsDefaultValue = {
 export const ClaimEscrowEarningsDefaultValue = {
   default: {
     value: {
-      engamentId: "",
+      engagementId: "",
       serviceProvider: "",
       contractId: "",
     },
