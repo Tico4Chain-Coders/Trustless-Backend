@@ -19,9 +19,10 @@ export class DeployerController {
   @Post("invoke-deployer-contract")
   @ApiInvokeContract()
   async invokeContract(
-    @Body() invokeDeployerContractDto: InvokeDeployerContractDto
+    @Body() invokeDeployerContractDto: InvokeDeployerContractDto,
   ): Promise<ApiResponse> {
-    const { engagementId, description, serviceProvider, amount, signer } = invokeDeployerContractDto;
+    const { engagementId, description, serviceProvider, amount, signer } =
+      invokeDeployerContractDto;
     try {
       const result = await this.deployerService.invokeDeployerContract(
         engagementId,

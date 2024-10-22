@@ -283,7 +283,7 @@ export class EscrowService {
       throw error;
     }
   }
-  
+
   async getEscrowByEngagementID(
     contractId: string,
     engagementId: string,
