@@ -78,14 +78,13 @@ export class HelperService {
       const operations = [
         StellarSDK.Operation.changeTrust({ asset: usdcAsset }),
       ];
-
       const transaction = buildTransaction(account, operations);
-
+      
       const result = await signAndSendTransaction(
         transaction,
         this.sourceKeypair,
         this.sorobanServer,
-        true,
+        false,
       );
 
       if (result.status !== "SUCCESS") {
@@ -101,6 +100,7 @@ export class HelperService {
         message: "The trust line has been correctly defined in the USDC token",
       };
     } catch (error) {
+      console.log(error)
       if (error.message.includes("HostError: Error(Contract, #")) {
         const errorCode = error.message.match(/Error\(Contract, #(\d+)\)/)?.[1];
         const errorMessage = mapErrorCodeToMessage(errorCode);
