@@ -28,6 +28,7 @@ import {
   SendTransactionDefaultValue,
   SetTrustlineDefaultValue,
 } from "./default-values-in-body/helper-default-value";
+import { ApiQuery } from "@nestjs/swagger";
 
 /**
  * Escrows
@@ -160,6 +161,16 @@ export const ApiRefundRemainingFundsEscrow = () => {
 
 export const ApiGetEscrowByEngagementIdEscrow = () => {
   return applyDecorators(
+    ApiQuery({
+      name: "contractId",
+      required: true,
+      description: "Contract ID",
+    }),
+    ApiQuery({
+      name: "engagementId",
+      required: true,
+      description: "Engagement ID",
+    }),
     ApiResponse({
       status: 200,
       description: "Escrow Body...",
@@ -276,7 +287,7 @@ export const ApiInvokeContract = () => {
   return applyDecorators(
     ApiBody({ type: InvokeContract, examples: InvokeContractDefaultValue }),
     ApiCreatedResponse({
-      description: "ContracId and EngagementId...",
+      description: "ContractId and EngagementId...",
     }),
     ApiBadRequestResponse({
       description: "Bad request",
